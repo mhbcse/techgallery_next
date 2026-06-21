@@ -7,7 +7,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Dev server:** `npm run dev` (Next.js dev server)
 - **Build:** `npm run build` (Next.js build)
 - **Deploy to Cloudflare:** `opennextjs-cloudflare build && npx wrangler deploy` (avoid `npm run deploy` — known EPIPE bug with miniflare)
-- No test runner or linter is configured.
+- **Tests:** `npm test` (Vitest, run once) or `npm run test:watch`. Vitest + Testing Library; config in `vitest.config.ts`, setup in `vitest.setup.ts`. Test files (`*.test.ts[x]`) live next to the code and are excluded from the Next/TS build via `tsconfig.json`.
+- No linter is configured.
 
 ## Architecture
 
@@ -18,7 +19,7 @@ The storefront is multi-tenant on a shared backend that resolves the store by `H
 ### Routing (Next.js App Router)
 
 Route groups defined in `app/` directory:
-- **(main)** — public pages: `/`, `/shop`, `/shop/:categorySlug`, `/products/:id`, `/bundles`, `/cart` (cart + checkout), `/wishlist`, `/track-order`
+- **(main)** — public pages: `/`, `/shop`, `/shop/:categorySlug`, `/products/:id`, `/bundles`, `/cart` (cart + checkout), `/wishlist`, `/track-order`, `/contact`
 - **(auth)** — `/login`, `/register`
 - **(dashboard)** — `/account/*` pages (orders, profile, wishlist)
 

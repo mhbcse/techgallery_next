@@ -6,7 +6,7 @@ export default function TopBar() {
       <span>24H Dispatch Nationwide · Secure 256-bit Checkout</span>
       <div className="hidden sm:flex items-center gap-4">
         <Link href="/track-order" className="hover:text-secondary transition-colors">Track Order</Link>
-        <Link href="#" className="hover:text-secondary transition-colors">Support</Link>
+        <Link href="/contact" className="hover:text-secondary transition-colors">Contact</Link>
       </div>
     </div>
   )

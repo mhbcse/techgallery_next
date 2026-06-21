@@ -1,6 +1,7 @@
 import TopBar from './TopBar'
 import Navbar from './Navbar'
 import Footer from './Footer'
+import CartAddedModal from '@/components/cart/CartAddedModal'
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,6 +12,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         {children}
       </main>
       <Footer />
+      <CartAddedModal />
     </div>
   )
 }

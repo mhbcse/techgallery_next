@@ -1,10 +1,10 @@
 import Link from 'next/link'
 
 const protocols = [
+  { label: 'Contact Us', href: '/contact' },
+  { label: 'Technical Support', href: '/contact' },
+  { label: 'Track Order', href: '/track-order' },
   { label: 'Warranty Policy', href: '#' },
-  { label: 'Technical Support', href: '#' },
-  { label: 'Shipping Info', href: '#' },
-  { label: 'Privacy Protocol', href: '#' },
 ]
 
 export default function Footer() {

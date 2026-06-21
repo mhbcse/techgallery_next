@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import type { ProductDetail, Variant, Product } from '@/api/types'
 import { useCartStore } from '@/stores/cartStore'
+import { useCartUIStore } from '@/stores/cartUIStore'
 import { useWishlistStore } from '@/stores/wishlistStore'
 import { formatCurrency } from '@/lib/formatCurrency'
 import QuantitySelector from '@/components/product/QuantitySelector'
@@ -62,6 +63,7 @@ export default function ProductDetailContent({
   const [activeTab, setActiveTab] = useState<Tab>('description')
 
   const addItem = useCartStore((s) => s.addItem)
+  const openCartAdded = useCartUIStore((s) => s.openCartAdded)
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlistStore()
   const inWishlist = isInWishlist(product.id)
 
@@ -99,7 +101,7 @@ export default function ProductDetailContent({
 
   const handleAddToCart = () => {
     if (!selectedVariant) return
-    addItem({
+    const cartItem = {
       productId: product.id,
       variantId: selectedVariant.id,
       name: product.name,
@@ -107,8 +109,10 @@ export default function ProductDetailContent({
       price: Number(selectedVariant.price),
       quantity,
       imageUrl: selectedVariant.image_url || product.thumbnail_url || product.photo_url,
-    })
+    }
+    addItem(cartItem)
     toast.success('Added to loadout')
+    openCartAdded(cartItem, relatedProducts)
   }
 
   const toggleWishlist = () => {

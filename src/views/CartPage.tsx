@@ -7,26 +7,17 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import toast from 'react-hot-toast'
 import { useCartStore } from '@/stores/cartStore'
-import type { CartItem } from '@/stores/cartStore'
 import { useAuthStore } from '@/stores/authStore'
-import { createOrder, type OrderItemInput } from '@/api/orders'
+import { createOrder } from '@/api/orders'
 import { captureAbandonedCart } from '@/api/abandonedCarts'
 import { listDistricts, listAreas } from '@/api/locations'
 import type { Location } from '@/api/types'
 import { getStoredTracking } from '@/lib/tracking'
+import { toOrderItems } from '@/lib/orderItems'
 import { shippingSchema, type ShippingFormData } from '@/lib/validators'
 import { formatCurrency } from '@/lib/formatCurrency'
 import EmptyState from '@/components/common/EmptyState'
 import { useTitle } from '@/hooks/useTitle'
-
-// Bundle lines order by bundle_id; everything else by variant_id.
-function toOrderItems(items: CartItem[]): OrderItemInput[] {
-  return items.map((item) =>
-    item.bundleId
-      ? { bundle_id: Number(item.bundleId), quantity: item.quantity }
-      : { variant_id: Number(item.variantId), quantity: item.quantity }
-  )
-}
 
 const inputClass =
   'w-full bg-surface-container border border-outline-variant text-body-sm p-3 focus:ring-1 focus:ring-secondary focus:border-secondary outline-none'
