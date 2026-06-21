@@ -7,18 +7,18 @@ interface BadgeProps {
 }
 
 const variants = {
-  primary: 'bg-primary/10 text-primary',
-  sale: 'bg-emerald-100 text-emerald-700',
+  primary: 'bg-secondary/10 text-secondary',
+  sale: 'bg-secondary text-white',
   new: 'bg-primary text-white',
-  success: 'bg-emerald-100 text-emerald-700',
+  success: 'bg-green-100 text-green-700',
   warning: 'bg-amber-100 text-amber-700',
-  danger: 'bg-rose-100 text-rose-700',
-  info: 'bg-pink-100 text-pink-600',
+  danger: 'bg-red-100 text-red-700',
+  info: 'bg-secondary/10 text-secondary',
 }
 
 export default function Badge({ variant = 'primary', children, className = '' }: BadgeProps) {
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${variants[variant]} ${className}`}>
+    <span className={`inline-flex items-center px-2.5 py-0.5 font-label-sm text-label-sm uppercase tracking-wider ${variants[variant]} ${className}`}>
       {children}
     </span>
   )

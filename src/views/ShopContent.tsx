@@ -1,18 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { listProducts } from '@/api/products'
 import type { Product, CategoryTree, Pagination } from '@/api/types'
 import ProductGrid from '@/components/product/ProductGrid'
 import PaginationComponent from '@/components/ui/Pagination'
-import Breadcrumb from '@/components/common/Breadcrumb'
 
-const AGE_GROUPS = ['0-12 Months', '1-3 Years', '4-6 Years', '7+ Years']
+const SPEC_TAGS = ['Wireless', 'RGB', 'Mechanical', 'OLED', '8K Polling', 'Hot-Swap']
 
 const SORT_OPTIONS = [
-  { label: 'Sort by: Popularity', value: 'featured' },
+  { label: 'Sort: Featured', value: 'featured' },
   { label: 'Price: Low to High', value: 'price_asc' },
   { label: 'Price: High to Low', value: 'price_desc' },
   { label: 'Newest First', value: 'newest' },
@@ -42,7 +40,7 @@ export default function ShopContent({
   const [pagination, setPagination] = useState<Pagination | null>(initialPagination)
   const [loading, setLoading] = useState(false)
   const [sortBy, setSortBy] = useState('featured')
-  const [selectedAgeGroup, setSelectedAgeGroup] = useState<string | null>(null)
+  const [selectedSpecs, setSelectedSpecs] = useState<string[]>([])
   const [priceMin, setPriceMin] = useState('')
   const [priceMax, setPriceMax] = useState('')
 
@@ -70,165 +68,134 @@ export default function ShopContent({
     router.push(`?${params.toString()}`)
   }
 
-  const handlePageChange = (newPage: number) => {
-    updateParams({ page: String(newPage) })
-  }
+  const handlePageChange = (newPage: number) => updateParams({ page: String(newPage) })
 
   const handleCategoryToggle = (categoryId: string) => {
-    if (activeCategoryId === categoryId) {
-      updateParams({ category_id: null, page: null })
-    } else {
-      updateParams({ category_id: categoryId, page: null })
-    }
+    if (activeCategoryId === categoryId) updateParams({ category_id: null, page: null })
+    else updateParams({ category_id: categoryId, page: null })
   }
 
+  const toggleSpec = (spec: string) =>
+    setSelectedSpecs((prev) => (prev.includes(spec) ? prev.filter((s) => s !== spec) : [...prev, spec]))
+
   const pageTitle = categorySlug
-    ? categorySlug.charAt(0).toUpperCase() + categorySlug.slice(1).replace(/-/g, ' ')
+    ? categorySlug.replace(/-/g, ' ').toUpperCase()
     : search
-      ? `Search: "${search}"`
-      : 'Shop'
+      ? `SEARCH: "${search.toUpperCase()}"`
+      : 'THE ARMORY'
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      {/* Top bar: breadcrumb + sort */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-        <Breadcrumb />
-        <div className="flex items-center gap-4">
-          {pagination && (
-            <span className="text-sm text-slate-500">
-              Showing {(pagination.current_page - 1) * pagination.per_page + 1}-
-              {Math.min(pagination.current_page * pagination.per_page, pagination.total_count)} of{' '}
-              {pagination.total_count} products
-            </span>
-          )}
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="bg-white border border-slate-200 rounded-lg text-sm px-3 py-2 outline-none focus:ring-1 focus:ring-primary focus:border-primary"
-          >
-            {SORT_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
+    <div className="max-w-container-max mx-auto px-margin-lg py-10">
+      {/* Header */}
+      <div className="mb-8 border-b border-outline-variant pb-6">
+        <span className="font-label-md text-label-md text-secondary uppercase tracking-[0.2em]">Hardware Catalog</span>
+        <h1 className="font-headline-lg text-headline-lg font-black tracking-tight mt-2">{pageTitle}</h1>
       </div>
 
-      {/* Two-column layout */}
+      {/* Top bar: count + sort */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        {pagination && (
+          <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">
+            {pagination.total_count} units · page {pagination.current_page}/{pagination.total_pages}
+          </span>
+        )}
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
+          className="bg-white border border-outline-variant text-label-md font-label-md uppercase px-3 py-2 outline-none focus:ring-1 focus:ring-secondary"
+        >
+          {SORT_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
+
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Sidebar */}
         <aside className="w-full lg:w-64 flex-shrink-0 space-y-8">
-          {/* Categories */}
+          {/* Hardware type / categories */}
           <div>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">
-              Categories
+            <h3 className="font-label-md text-label-md font-bold uppercase tracking-wider text-on-surface-variant mb-4 border-l-2 border-secondary pl-2">
+              Hardware Type
             </h3>
             <div className="space-y-2">
               {categories.map((cat) => (
-                <label
-                  key={cat.id}
-                  className="flex items-center gap-3 cursor-pointer group"
-                >
+                <label key={cat.id} className="flex items-center gap-3 cursor-pointer group">
                   <input
                     type="checkbox"
                     checked={activeCategoryId === cat.id}
                     onChange={() => handleCategoryToggle(cat.id)}
-                    className="rounded border-slate-300 text-primary focus:ring-primary"
+                    className="border-outline-variant text-secondary focus:ring-secondary"
                   />
                   <span
-                    className={`text-sm ${
+                    className={`font-body-sm text-body-sm ${
                       activeCategoryId === cat.id
-                        ? 'font-medium text-primary'
-                        : 'group-hover:text-primary transition-colors'
+                        ? 'font-semibold text-secondary'
+                        : 'text-on-surface group-hover:text-secondary transition-colors'
                     }`}
                   >
                     {cat.name}
                   </span>
-                  {cat.children && (
-                    <span className="ml-auto text-xs text-slate-400">
-                      ({cat.children.length})
-                    </span>
-                  )}
                 </label>
               ))}
+              {categories.length === 0 && (
+                <p className="font-body-sm text-body-sm text-outline">No categories available.</p>
+              )}
             </div>
           </div>
 
-          {/* Price Range */}
+          {/* Price range */}
           <div>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">
+            <h3 className="font-label-md text-label-md font-bold uppercase tracking-wider text-on-surface-variant mb-4 border-l-2 border-secondary pl-2">
               Price Range (BDT)
             </h3>
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  placeholder="Min"
-                  value={priceMin}
-                  onChange={(e) => setPriceMin(e.target.value)}
-                  className="w-1/2 bg-white border border-slate-200 rounded-lg text-sm px-3 py-2 focus:ring-1 focus:ring-primary focus:border-primary outline-none"
-                />
-                <span className="text-slate-400">-</span>
-                <input
-                  type="number"
-                  placeholder="Max"
-                  value={priceMax}
-                  onChange={(e) => setPriceMax(e.target.value)}
-                  className="w-1/2 bg-white border border-slate-200 rounded-lg text-sm px-3 py-2 focus:ring-1 focus:ring-primary focus:border-primary outline-none"
-                />
-              </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                placeholder="MIN"
+                value={priceMin}
+                onChange={(e) => setPriceMin(e.target.value)}
+                className="w-1/2 bg-white border border-outline-variant text-label-md font-label-md px-3 py-2 focus:ring-1 focus:ring-secondary outline-none"
+              />
+              <span className="text-outline">–</span>
+              <input
+                type="number"
+                placeholder="MAX"
+                value={priceMax}
+                onChange={(e) => setPriceMax(e.target.value)}
+                className="w-1/2 bg-white border border-outline-variant text-label-md font-label-md px-3 py-2 focus:ring-1 focus:ring-secondary outline-none"
+              />
             </div>
           </div>
 
-          {/* Age Group */}
+          {/* Technical specs */}
           <div>
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 mb-4">
-              Age Group
+            <h3 className="font-label-md text-label-md font-bold uppercase tracking-wider text-on-surface-variant mb-4 border-l-2 border-secondary pl-2">
+              Technical Specs
             </h3>
-            <div className="grid grid-cols-2 gap-2">
-              {AGE_GROUPS.map((age) => (
+            <div className="flex flex-wrap gap-2">
+              {SPEC_TAGS.map((spec) => (
                 <button
-                  key={age}
-                  onClick={() => setSelectedAgeGroup(selectedAgeGroup === age ? null : age)}
-                  className={`px-3 py-2 text-xs border rounded transition-all ${
-                    selectedAgeGroup === age
-                      ? 'border-primary text-primary bg-primary/10 font-semibold'
-                      : 'border-slate-200 hover:border-primary hover:text-primary'
+                  key={spec}
+                  onClick={() => toggleSpec(spec)}
+                  className={`px-3 py-1.5 font-label-sm text-label-sm uppercase tracking-wider border transition-all ${
+                    selectedSpecs.includes(spec)
+                      ? 'border-secondary text-secondary bg-secondary/10'
+                      : 'border-outline-variant text-on-surface-variant hover:border-secondary hover:text-secondary'
                   }`}
                 >
-                  {age}
+                  {spec}
                 </button>
               ))}
             </div>
           </div>
-
-          {/* Promotional card */}
-          <div className="relative rounded-xl overflow-hidden aspect-[4/5] bg-primary group">
-            <img
-              src="/assets/category-girls-party-wear.webp"
-              alt="Seasonal Offer"
-              className="absolute inset-0 w-full h-full object-cover opacity-60 mix-blend-multiply group-hover:scale-110 transition-transform duration-500"
-            />
-            <div className="absolute inset-0 p-6 flex flex-col justify-end text-white">
-              <p className="text-xs font-bold uppercase mb-1">Seasonal Offer</p>
-              <h4 className="text-xl font-bold leading-tight mb-3">Up to 40% OFF on Party Wear</h4>
-              <Link
-                href="/shop?sale=true"
-                className="w-full py-2 bg-white text-primary rounded-lg font-bold text-sm shadow-xl hover:bg-slate-50 transition-colors text-center block"
-              >
-                Shop Collection
-              </Link>
-            </div>
-          </div>
         </aside>
 
-        {/* Product grid area */}
+        {/* Product grid */}
         <div className="flex-1 min-w-0">
-          {/* Products */}
           <ProductGrid products={products} loading={loading} />
-
-          {/* Pagination */}
           {pagination && (
             <PaginationComponent
               currentPage={pagination.current_page}

@@ -24,12 +24,12 @@ export default function Modal({ isOpen, onClose, children, title }: ModalProps) 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-auto">
+      <div className="relative bg-white border border-outline-variant shadow-2xl max-w-lg w-full mx-4 max-h-[90vh] overflow-auto">
         {title && (
-          <div className="flex items-center justify-between p-6 border-b border-slate-100">
-            <h3 className="text-lg font-bold">{title}</h3>
-            <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
-              <span className="material-icons-outlined">close</span>
+          <div className="flex items-center justify-between p-6 border-b border-outline-variant">
+            <h3 className="font-label-md text-label-md font-bold uppercase tracking-wider">{title}</h3>
+            <button onClick={onClose} className="text-on-surface-variant hover:text-secondary">
+              <span className="material-symbols-outlined">close</span>
             </button>
           </div>
         )}

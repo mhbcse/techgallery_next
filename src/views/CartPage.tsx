@@ -28,22 +28,17 @@ function toOrderItems(items: CartItem[]): OrderItemInput[] {
   )
 }
 
-type PaymentMethod = 'cod'
-
-const paymentOptions: { value: PaymentMethod; label: string; icon?: string; color?: string }[] = [
-  { value: 'cod', label: 'Cash on Delivery', icon: 'payments' },
-]
+const inputClass =
+  'w-full bg-surface-container border border-outline-variant text-body-sm p-3 focus:ring-1 focus:ring-secondary focus:border-secondary outline-none'
 
 export default function CartPage() {
-  useTitle('Shopping Cart - Baby Gallery')
+  useTitle('Checkout - Tech Gallery')
   const router = useRouter()
   const { items, removeItem, updateQuantity, clearCart, totalItems, subtotal } = useCartStore()
   const { user } = useAuthStore()
 
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cod')
   const [promoCode, setPromoCode] = useState('')
   const [placing, setPlacing] = useState(false)
-  const [currentStep, setCurrentStep] = useState(0)
 
   // Delivery location → drives the displayed fee. The server recomputes the
   // authoritative shipping_charge from district/area, so this is an estimate.
@@ -85,7 +80,6 @@ export default function CartPage() {
   })
 
   const cartSubtotal = subtotal()
-  // Area override → district fee → unknown (server falls back to its default).
   const resolvedFee = selectedArea?.fee ?? selectedDistrict?.fee ?? null
   const shippingKnown = resolvedFee != null
   const shippingCost = resolvedFee ?? 0
@@ -144,18 +138,12 @@ export default function CartPage() {
       })
 
       clearCart()
-      // The server recomputes shipping, so report its authoritative grand total.
       toast.success(`Order placed! Total ${formatCurrency(order.grand_total)}`)
-      setCurrentStep(2)
 
-      if (user) {
-        router.push('/account/orders')
-      } else {
-        router.push('/')
-      }
+      if (user) router.push('/account/orders')
+      else router.push('/')
     } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : 'Failed to place order. Please try again.'
+      const message = err instanceof Error ? err.message : 'Failed to place order. Please try again.'
       toast.error(message)
     } finally {
       setPlacing(false)
@@ -164,17 +152,17 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-20">
+      <div className="max-w-container-max mx-auto px-margin-lg py-20">
         <EmptyState
           icon="shopping_cart"
-          title="Your cart is empty"
-          description="Looks like you haven't added any items to your cart yet. Browse our collection and find something you love!"
+          title="Your loadout is empty"
+          description="No hardware queued for deployment yet. Browse the armory and equip your setup."
           action={
             <Link
               href="/shop"
-              className="bg-primary text-white px-8 py-3 rounded-xl text-sm font-bold hover:bg-primary-dark transition-colors"
+              className="bg-primary text-white px-8 py-3 font-label-md text-label-md uppercase tracking-widest hover:bg-secondary transition-colors"
             >
-              Start Shopping
+              Enter The Armory
             </Link>
           }
         />
@@ -183,72 +171,68 @@ export default function CartPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="max-w-container-max mx-auto px-margin-lg py-8">
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* Left Column - Cart Items */}
+        {/* Cart items */}
         <div className="flex-1 space-y-6">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">
-              Shopping Cart{' '}
-              <span className="text-slate-400 font-normal text-lg">
-                ({totalItems()} {totalItems() === 1 ? 'item' : 'items'})
+          <div className="flex items-center justify-between border-b border-outline-variant pb-4">
+            <h1 className="font-headline-lg text-headline-lg font-black uppercase">
+              Loadout{' '}
+              <span className="text-outline font-normal text-headline-lg-mobile">
+                ({totalItems()} {totalItems() === 1 ? 'unit' : 'units'})
               </span>
             </h1>
             <button
               onClick={clearCart}
-              className="text-sm text-red-500 hover:underline flex items-center gap-1"
+              className="font-label-md text-label-md uppercase tracking-wider text-red-500 hover:underline flex items-center gap-1"
             >
-              <span className="material-icons-outlined text-sm">delete_sweep</span>
-              Clear Cart
+              <span className="material-symbols-outlined text-sm">delete_sweep</span>
+              Clear
             </button>
           </div>
 
-          {/* Cart Items */}
           <div className="space-y-4">
             {items.map((item) => (
               <div
                 key={item.variantId}
-                className="bg-white p-4 rounded-xl border border-pink-100 flex flex-col sm:flex-row gap-4"
+                className="bg-white p-4 border border-outline-variant flex flex-col sm:flex-row gap-4"
               >
-                <div className="w-24 h-24 bg-pink-50 rounded-lg overflow-hidden flex-shrink-0">
+                <div className="w-24 h-24 bg-surface-container overflow-hidden flex-shrink-0">
                   <img
-                    src={item.imageUrl || '/assets/placeholder.png'}
+                    src={item.imageUrl || '/assets/logo-vertical-blue.png'}
                     alt={item.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain p-2"
                   />
                 </div>
                 <div className="flex-1 flex flex-col justify-between">
                   <div className="flex justify-between gap-2">
                     <div>
-                      <h3 className="font-semibold text-slate-800">{item.name}</h3>
-                      {item.variantName && (
-                        <p className="text-xs text-slate-500 mt-1">{item.variantName}</p>
-                      )}
+                      <h3 className="font-label-md text-label-md font-bold uppercase text-on-surface">{item.name}</h3>
+                      {item.variantName && <p className="font-label-sm text-label-sm text-outline mt-1">{item.variantName}</p>}
                     </div>
-                    <p className="font-bold text-lg text-primary">{formatCurrency(item.price)}</p>
+                    <p className="font-bold text-lg text-secondary">{formatCurrency(item.price)}</p>
                   </div>
                   <div className="flex items-center justify-between mt-4">
-                    <div className="flex items-center border border-pink-100 rounded-lg overflow-hidden">
+                    <div className="flex items-center border border-outline-variant overflow-hidden">
                       <button
                         onClick={() => updateQuantity(item.variantId, Math.max(1, item.quantity - 1))}
-                        className="px-3 py-1 bg-pink-50/50 hover:bg-pink-100 text-slate-600"
+                        className="px-3 py-1 hover:bg-surface-container-low text-on-surface"
                       >
-                        -
+                        −
                       </button>
-                      <span className="w-10 text-center text-sm font-medium">{item.quantity}</span>
+                      <span className="w-10 text-center font-label-md text-label-md font-bold">{item.quantity}</span>
                       <button
                         onClick={() => updateQuantity(item.variantId, item.quantity + 1)}
-                        className="px-3 py-1 bg-pink-50/50 hover:bg-pink-100 text-slate-600"
+                        className="px-3 py-1 hover:bg-surface-container-low text-on-surface"
                       >
                         +
                       </button>
                     </div>
                     <button
                       onClick={() => removeItem(item.variantId)}
-                      className="text-slate-400 hover:text-red-500 transition-colors"
+                      className="text-outline hover:text-red-500 transition-colors"
                     >
-                      <span className="material-icons-outlined">delete</span>
+                      <span className="material-symbols-outlined">delete</span>
                     </button>
                   </div>
                 </div>
@@ -256,47 +240,24 @@ export default function CartPage() {
             ))}
           </div>
 
-          {/* Gift Card */}
-          <div className="bg-primary/5 border border-dashed border-primary/40 p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <span className="material-icons-outlined text-primary">card_giftcard</span>
+          {/* Promo code */}
+          <div className="bg-secondary/5 border border-secondary/20 p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <span className="material-symbols-outlined text-secondary">local_offer</span>
             <div className="flex-1">
-              <h4 className="text-sm font-bold">Redeem Gift Card</h4>
-              <p className="text-xs text-slate-600">Use your Baby Gallery gift card balance.</p>
-            </div>
-            <div className="flex gap-2 w-full sm:w-auto">
-              <input
-                type="text"
-                placeholder="Gift Card Code"
-                className="bg-white border border-pink-100 rounded-lg text-sm px-3 py-2 w-32 focus:ring-primary focus:border-primary outline-none"
-              />
-              <button
-                type="button"
-                onClick={() => toast('Gift card feature coming soon!')}
-                className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-primary-dark transition-colors"
-              >
-                Apply
-              </button>
-            </div>
-          </div>
-
-          {/* Promo Code */}
-          <div className="bg-primary/5 border border-primary/20 p-4 rounded-xl flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <span className="material-icons-outlined text-primary">local_offer</span>
-            <div className="flex-1">
-              <h4 className="text-sm font-bold">Have a Promo Code?</h4>
-              <p className="text-xs text-slate-600">Apply your discount coupon for extra savings.</p>
+              <h4 className="font-label-md text-label-md font-bold uppercase">Have a Promo Code?</h4>
+              <p className="font-label-sm text-label-sm text-on-surface-variant">Apply your access code for extra savings.</p>
             </div>
             <div className="flex gap-2 w-full sm:w-auto">
               <input
                 type="text"
                 value={promoCode}
                 onChange={(e) => setPromoCode(e.target.value)}
-                placeholder="Enter code"
-                className="bg-white border border-pink-100 rounded-lg text-sm px-3 py-2 w-32 focus:ring-primary focus:border-primary outline-none"
+                placeholder="CODE"
+                className="bg-white border border-outline-variant text-label-md font-label-md px-3 py-2 w-32 focus:ring-1 focus:ring-secondary outline-none"
               />
               <button
                 onClick={handleApplyPromo}
-                className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-primary-dark transition-colors"
+                className="bg-primary text-white px-4 py-2 font-label-md text-label-md uppercase tracking-wider hover:bg-secondary transition-colors"
               >
                 Apply
               </button>
@@ -304,31 +265,19 @@ export default function CartPage() {
           </div>
         </div>
 
-        {/* Right Column - Checkout Sidebar */}
+        {/* Checkout sidebar */}
         <div className="lg:w-[420px] space-y-6">
           <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="bg-white rounded-xl border border-pink-100 overflow-hidden shadow-sm sticky top-24">
-              {/* Step Tabs */}
-              <div className="flex border-b border-pink-50">
-                {['1. Shipping', '2. Payment', '3. Success'].map((step, index) => (
-                  <div
-                    key={step}
-                    className={`flex-1 py-3 px-2 text-center text-[10px] font-bold uppercase tracking-wider border-b-2 ${
-                      index <= currentStep
-                        ? 'text-primary border-primary'
-                        : 'text-slate-400 border-transparent'
-                    }`}
-                  >
-                    {step}
-                  </div>
-                ))}
+            <div className="bg-white border border-outline-variant overflow-hidden sticky top-24">
+              <div className="bg-primary text-white px-6 py-4">
+                <h2 className="font-label-md text-label-md uppercase tracking-[0.2em]">Deployment Manifest</h2>
               </div>
 
               <div className="p-6 space-y-6">
-                {/* Shipping Address */}
+                {/* Shipping */}
                 <div className="space-y-4">
-                  <h2 className="text-lg font-bold flex items-center gap-2">
-                    <span className="material-icons-outlined text-primary">local_shipping</span>
+                  <h2 className="font-label-md text-label-md font-bold uppercase tracking-wider flex items-center gap-2">
+                    <span className="material-symbols-outlined text-secondary">local_shipping</span>
                     Shipping Address
                   </h2>
                   <div className="grid grid-cols-1 gap-3">
@@ -336,140 +285,88 @@ export default function CartPage() {
                       <input
                         type="text"
                         placeholder="Full Name"
-                        className={`w-full bg-pink-50 border-none rounded-lg text-sm p-3 focus:ring-2 focus:ring-primary/50 outline-none ${
-                          errors.customer_name ? 'ring-2 ring-red-400' : ''
-                        }`}
+                        className={`${inputClass} ${errors.customer_name ? 'ring-1 ring-red-400' : ''}`}
                         {...register('customer_name')}
                       />
-                      {errors.customer_name && (
-                        <p className="mt-1 text-xs text-red-500">{errors.customer_name.message}</p>
-                      )}
+                      {errors.customer_name && <p className="mt-1 text-xs text-red-500">{errors.customer_name.message}</p>}
                     </div>
                     <div>
                       <input
                         type="tel"
                         placeholder="Mobile Number (e.g. 01712xxxxxx)"
-                        className={`w-full bg-pink-50 border-none rounded-lg text-sm p-3 focus:ring-2 focus:ring-primary/50 outline-none ${
-                          errors.customer_phone ? 'ring-2 ring-red-400' : ''
-                        }`}
+                        className={`${inputClass} ${errors.customer_phone ? 'ring-1 ring-red-400' : ''}`}
                         {...phoneField}
                         onBlur={(e) => {
                           phoneField.onBlur(e)
                           handlePhoneBlur()
                         }}
                       />
-                      {errors.customer_phone && (
-                        <p className="mt-1 text-xs text-red-500">{errors.customer_phone.message}</p>
-                      )}
+                      {errors.customer_phone && <p className="mt-1 text-xs text-red-500">{errors.customer_phone.message}</p>}
                     </div>
                     <div>
                       <textarea
                         placeholder="House no, Flat no, Street name..."
                         rows={2}
-                        className={`w-full bg-pink-50 border-none rounded-lg text-sm p-3 focus:ring-2 focus:ring-primary/50 outline-none ${
-                          errors.customer_address ? 'ring-2 ring-red-400' : ''
-                        }`}
+                        className={`${inputClass} ${errors.customer_address ? 'ring-1 ring-red-400' : ''}`}
                         {...register('customer_address')}
                       />
-                      {errors.customer_address && (
-                        <p className="mt-1 text-xs text-red-500">{errors.customer_address.message}</p>
-                      )}
+                      {errors.customer_address && <p className="mt-1 text-xs text-red-500">{errors.customer_address.message}</p>}
                     </div>
-                    <div>
-                      <div className="grid grid-cols-2 gap-3">
-                        <select
-                          value={districtId}
-                          onChange={(e) => handleDistrictChange(e.target.value)}
-                          className={`w-full bg-pink-50 border-none rounded-lg text-sm p-3 focus:ring-2 focus:ring-primary/50 outline-none ${
-                            locationError && !districtId ? 'ring-2 ring-red-400' : ''
-                          }`}
-                        >
-                          <option value="">Select District *</option>
-                          {districts.map((d) => (
-                            <option key={d.id} value={d.id}>
-                              {d.name}
-                            </option>
-                          ))}
-                        </select>
-                        <select
-                          value={areaId}
-                          onChange={(e) => {
-                            setAreaId(e.target.value)
-                            setLocationError(false)
-                          }}
-                          disabled={!districtId || areas.length === 0}
-                          className={`w-full bg-pink-50 border-none rounded-lg text-sm p-3 focus:ring-2 focus:ring-primary/50 outline-none disabled:opacity-50 ${
-                            locationError && !areaId ? 'ring-2 ring-red-400' : ''
-                          }`}
-                        >
-                          <option value="">Select Area *</option>
-                          {areas.map((a) => (
-                            <option key={a.id} value={a.id}>
-                              {a.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      {locationError && (
-                        <p className="mt-1 text-xs text-red-500">
-                          District and area are required
-                        </p>
-                      )}
+                    <div className="grid grid-cols-2 gap-3">
+                      <select
+                        value={districtId}
+                        onChange={(e) => handleDistrictChange(e.target.value)}
+                        className={`${inputClass} ${locationError && !districtId ? 'ring-1 ring-red-400' : ''}`}
+                      >
+                        <option value="">Select District *</option>
+                        {districts.map((d) => (
+                          <option key={d.id} value={d.id}>{d.name}</option>
+                        ))}
+                      </select>
+                      <select
+                        value={areaId}
+                        onChange={(e) => {
+                          setAreaId(e.target.value)
+                          setLocationError(false)
+                        }}
+                        disabled={!districtId || areas.length === 0}
+                        className={`${inputClass} disabled:opacity-50 ${locationError && !areaId ? 'ring-1 ring-red-400' : ''}`}
+                      >
+                        <option value="">Select Area *</option>
+                        {areas.map((a) => (
+                          <option key={a.id} value={a.id}>{a.name}</option>
+                        ))}
+                      </select>
                     </div>
+                    {locationError && <p className="text-xs text-red-500">District and area are required</p>}
                   </div>
                 </div>
 
-                <hr className="border-pink-50" />
+                <hr className="border-outline-variant" />
 
-                {/* Payment Method */}
-                <div className="space-y-4">
-                  <h2 className="text-lg font-bold flex items-center gap-2">
-                    <span className="material-icons-outlined text-primary">account_balance_wallet</span>
+                {/* Payment */}
+                <div className="space-y-3">
+                  <h2 className="font-label-md text-label-md font-bold uppercase tracking-wider flex items-center gap-2">
+                    <span className="material-symbols-outlined text-secondary">account_balance_wallet</span>
                     Payment Method
                   </h2>
-                  <div className="grid grid-cols-1 gap-2">
-                    {paymentOptions.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        onClick={() => {
-                          setPaymentMethod(option.value)
-                          setCurrentStep(1)
-                        }}
-                        className={`p-2 border rounded-lg flex flex-col items-center gap-1 transition-all ${
-                          paymentMethod === option.value
-                            ? 'border-primary bg-primary/5'
-                            : 'border-pink-100 hover:border-slate-300'
-                        }`}
-                      >
-                        <div className="h-8 w-12 flex items-center justify-center">
-                          {option.icon ? (
-                            <span className="material-icons-outlined text-xl text-slate-500">
-                              {option.icon}
-                            </span>
-                          ) : (
-                            <span className={`text-[10px] font-black ${option.color}`}>
-                              {option.label}
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-[10px] font-bold">{option.label}</span>
-                      </button>
-                    ))}
+                  <div className="p-3 border border-secondary bg-secondary/5 flex items-center gap-3">
+                    <span className="material-symbols-outlined text-secondary">payments</span>
+                    <span className="font-label-md text-label-md font-bold uppercase">Cash on Delivery</span>
                   </div>
                 </div>
 
-                {/* Order Summary */}
-                <div className="pt-6 border-t border-pink-100 space-y-3">
-                  <div className="flex justify-between text-sm text-slate-600">
-                    <span>Subtotal ({totalItems()} items)</span>
+                {/* Summary */}
+                <div className="pt-6 border-t border-outline-variant space-y-3 font-body-sm text-body-sm">
+                  <div className="flex justify-between text-on-surface-variant">
+                    <span>Subtotal ({totalItems()} units)</span>
                     <span>{formatCurrency(cartSubtotal)}</span>
                   </div>
-                  <div className="flex justify-between text-sm text-slate-600">
+                  <div className="flex justify-between text-on-surface-variant">
                     <span>Shipping Fee</span>
                     <span>
                       {!shippingKnown ? (
-                        <span className="text-slate-400">Select district</span>
+                        <span className="text-outline">Select district</span>
                       ) : shippingCost === 0 ? (
                         <span className="text-green-600">Free</span>
                       ) : (
@@ -477,67 +374,45 @@ export default function CartPage() {
                       )}
                     </span>
                   </div>
-                  {discount > 0 && (
-                    <div className="flex justify-between text-sm text-green-600">
-                      <span>Discount</span>
-                      <span>- {formatCurrency(discount)}</span>
-                    </div>
-                  )}
                   <div className="flex justify-between text-lg font-bold pt-2">
-                    <span>Total Amount</span>
-                    <span className="text-primary">{formatCurrency(total)}</span>
+                    <span>Total</span>
+                    <span className="text-secondary">{formatCurrency(total)}</span>
                   </div>
                 </div>
 
-                {/* Place Order */}
                 <button
                   type="submit"
                   disabled={placing}
-                  className="w-full bg-primary text-white py-4 rounded-xl font-bold text-lg hover:bg-primary-dark transition-all shadow-lg shadow-primary/25 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full bg-primary text-white py-4 font-label-md text-label-md uppercase tracking-widest hover:bg-secondary transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {placing && (
-                    <span className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />
-                  )}
-                  Place Order
-                  <span className="material-icons-outlined">arrow_forward</span>
+                  {placing && <span className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />}
+                  Confirm Order
+                  <span className="material-symbols-outlined">arrow_forward</span>
                 </button>
-
               </div>
             </div>
           </form>
         </div>
       </div>
 
-      {/* Trust Badges */}
-      <div className="border-t border-pink-100 py-8 bg-white mt-12">
-        <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
-          <div className="flex flex-col md:flex-row items-center gap-4">
-            <div className="bg-primary/10 p-3 rounded-full text-primary">
-              <span className="material-icons-outlined">auto_awesome</span>
+      {/* Trust badges */}
+      <div className="border-t border-outline-variant py-8 mt-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[
+            { icon: 'bolt', title: '24H Dispatch', body: 'Prioritized nationwide deployment.' },
+            { icon: 'verified_user', title: 'Lifetime Warranty', body: 'Guaranteed against manufacturing defects.' },
+            { icon: 'lock', title: 'Secure Checkout', body: '256-bit encrypted transactions.' },
+          ].map((b) => (
+            <div key={b.title} className="flex items-center gap-4">
+              <div className="bg-secondary/10 p-3 text-secondary">
+                <span className="material-symbols-outlined">{b.icon}</span>
+              </div>
+              <div>
+                <h5 className="font-label-md text-label-md font-bold uppercase">{b.title}</h5>
+                <p className="font-label-sm text-label-sm text-on-surface-variant">{b.body}</p>
+              </div>
             </div>
-            <div>
-              <h5 className="font-bold text-sm">Premium Quality</h5>
-              <p className="text-xs text-slate-500">Curated collection for your little ones.</p>
-            </div>
-          </div>
-          <div className="flex flex-col md:flex-row items-center gap-4">
-            <div className="bg-primary/10 p-3 rounded-full text-primary">
-              <span className="material-icons-outlined">local_shipping</span>
-            </div>
-            <div>
-              <h5 className="font-bold text-sm">Fast Delivery</h5>
-              <p className="text-xs text-slate-500">24h delivery inside Dhaka Metropolitan.</p>
-            </div>
-          </div>
-          <div className="flex flex-col md:flex-row items-center gap-4">
-            <div className="bg-primary/10 p-3 rounded-full text-primary">
-              <span className="material-icons-outlined">workspace_premium</span>
-            </div>
-            <div>
-              <h5 className="font-bold text-sm">Trusted Brand</h5>
-              <p className="text-xs text-slate-500">Loved by 50,000+ Bangladeshi parents.</p>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>

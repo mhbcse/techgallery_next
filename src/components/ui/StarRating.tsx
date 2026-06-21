@@ -16,8 +16,8 @@ export default function StarRating({ rating, maxStars = 5, size = 'sm' }: StarRa
       {Array.from({ length: maxStars }, (_, i) => (
         <span
           key={i}
-          className={`material-icons ${sizeClasses[size]} ${
-            i < Math.floor(rating) ? 'text-yellow-400' : 'text-slate-200'
+          className={`material-symbols-outlined ${sizeClasses[size]} ${
+            i < Math.floor(rating) ? 'text-secondary' : 'text-outline-variant'
           }`}
         >
           star

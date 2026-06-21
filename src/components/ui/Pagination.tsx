@@ -28,21 +28,21 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="w-10 h-10 flex items-center justify-center rounded-lg border border-pink-100 hover:bg-pink-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-10 h-10 flex items-center justify-center border border-outline-variant hover:border-secondary hover:text-secondary transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        <span className="material-icons-outlined text-sm">chevron_left</span>
+        <span className="material-symbols-outlined text-sm">chevron_left</span>
       </button>
       {getPages().map((page, i) =>
         page === '...' ? (
-          <span key={`dots-${i}`} className="px-2 text-slate-400">...</span>
+          <span key={`dots-${i}`} className="px-2 text-outline">...</span>
         ) : (
           <button
             key={page}
             onClick={() => onPageChange(page)}
-            className={`w-10 h-10 flex items-center justify-center rounded-lg font-medium transition-colors ${
+            className={`w-10 h-10 flex items-center justify-center font-label-md text-label-md transition-colors ${
               page === currentPage
-                ? 'bg-primary text-white font-bold shadow-lg shadow-primary/20'
-                : 'border border-pink-100 hover:bg-pink-50'
+                ? 'bg-primary text-white font-bold'
+                : 'border border-outline-variant hover:border-secondary hover:text-secondary'
             }`}
           >
             {page}
@@ -52,9 +52,9 @@ export default function Pagination({ currentPage, totalPages, onPageChange }: Pa
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="w-10 h-10 flex items-center justify-center rounded-lg border border-pink-100 hover:bg-pink-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-10 h-10 flex items-center justify-center border border-outline-variant hover:border-secondary hover:text-secondary transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        <span className="material-icons-outlined text-sm">chevron_right</span>
+        <span className="material-symbols-outlined text-sm">chevron_right</span>
       </button>
     </div>
   )

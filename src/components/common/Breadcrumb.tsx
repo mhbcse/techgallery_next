@@ -19,17 +19,17 @@ export default function Breadcrumb() {
   })
 
   return (
-    <nav className="flex items-center gap-2 text-sm">
-      <Link href="/" className="text-slate-400 hover:text-primary transition-colors">
+    <nav className="flex items-center gap-2 text-label-sm uppercase tracking-wider">
+      <Link href="/" className="text-on-surface-variant hover:text-secondary transition-colors">
         Home
       </Link>
       {crumbs.map((crumb, i) => (
         <span key={crumb.path} className="flex items-center gap-2">
-          <span className="material-icons-outlined text-slate-300 text-sm">chevron_right</span>
+          <span className="material-symbols-outlined text-outline-variant text-sm">chevron_right</span>
           {i === crumbs.length - 1 ? (
-            <span className="text-slate-700 font-medium">{crumb.label}</span>
+            <span className="text-on-surface font-medium">{crumb.label}</span>
           ) : (
-            <Link href={crumb.path} className="text-slate-400 hover:text-primary transition-colors">
+            <Link href={crumb.path} className="text-on-surface-variant hover:text-secondary transition-colors">
               {crumb.label}
             </Link>
           )}

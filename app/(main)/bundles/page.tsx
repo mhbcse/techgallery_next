@@ -5,8 +5,8 @@ import type { Bundle, PaginatedResponse } from '@/api/types'
 import BundlesContent from '@/views/BundlesContent'
 
 export const metadata: Metadata = {
-  title: 'Bundles - Baby Gallery',
-  description: 'Shop curated bundles and combo deals for kids fashion at a better price.',
+  title: 'Combat Kits - Tech Gallery',
+  description: 'Curated combat kits and loadout bundles at a better price.',
 }
 
 export default async function BundlesPage({

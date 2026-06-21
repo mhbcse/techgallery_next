@@ -17,7 +17,7 @@ interface BundlesContentProps {
 }
 
 export default function BundlesContent({ initialBundles, initialPagination }: BundlesContentProps) {
-  useTitle('Bundles - Baby Gallery')
+  useTitle('Loadout Bundles - Tech Gallery')
   const router = useRouter()
   const searchParams = useSearchParams()
   const page = Number(searchParams?.get('page')) || 1
@@ -51,8 +51,8 @@ export default function BundlesContent({ initialBundles, initialPagination }: Bu
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <Breadcrumb />
-      <h1 className="text-2xl md:text-3xl font-bold text-slate-800 mb-2">Bundles & Combos</h1>
-      <p className="text-sm text-slate-500 mb-8">Curated sets at a better price.</p>
+      <h1 className="text-headline-lg-mobile md:text-headline-lg font-display text-on-surface mb-2">Combat Kits & Loadout Bundles</h1>
+      <p className="font-label-md uppercase tracking-wider text-on-surface-variant mb-8">Curated gear sets at a better price.</p>
 
       {loading ? (
         <div className="flex justify-center py-20">
@@ -61,8 +61,8 @@ export default function BundlesContent({ initialBundles, initialPagination }: Bu
       ) : bundles.length === 0 ? (
         <EmptyState
           icon="inventory_2"
-          title="No bundles available"
-          description="Check back soon for combo deals."
+          title="No loadouts available"
+          description="Check back soon for kit deals."
         />
       ) : (
         <>

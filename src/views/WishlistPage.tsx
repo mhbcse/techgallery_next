@@ -11,7 +11,7 @@ export default function WishlistPage() {
   const { items, removeItem } = useWishlistStore()
   const addToCart = useCartStore((s) => s.addItem)
 
-  useTitle('My Wishlist - Baby Gallery')
+  useTitle('My Wishlist - Tech Gallery')
 
   const handleMoveToCart = (item: typeof items[0]) => {
     // Number() tolerates legacy string values persisted in older localStorage.
@@ -42,42 +42,42 @@ export default function WishlistPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" className="flex mb-6 text-sm font-medium">
+      <nav aria-label="Breadcrumb" className="flex mb-6 font-label-md uppercase tracking-wider">
         <ol className="flex items-center space-x-2">
           <li>
-            <Link href="/" className="text-slate-500 hover:text-primary transition-colors">
+            <Link href="/" className="text-on-surface-variant hover:text-secondary transition-colors">
               Home
             </Link>
           </li>
           <li>
-            <span className="material-icons-outlined text-slate-400 text-xs">chevron_right</span>
+            <span className="material-symbols-outlined text-outline text-xs">chevron_right</span>
           </li>
-          <li className="text-primary">Wishlist</li>
+          <li className="text-secondary">Wishlist</li>
         </ol>
       </nav>
 
       {/* Page Title */}
       <div className="flex items-baseline gap-3 mb-10">
-        <h1 className="text-3xl font-extrabold text-slate-900">My Wishlist</h1>
-        <span className="text-slate-500 font-medium">({items.length} Items)</span>
+        <h1 className="text-headline-lg font-display text-on-surface">My Wishlist</h1>
+        <span className="text-on-surface-variant font-label-md uppercase tracking-wider">({items.length} Items)</span>
       </div>
 
       {items.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-center">
-          <div className="w-24 h-24 mb-8 bg-primary/5 rounded-full flex items-center justify-center">
-            <span className="material-icons-outlined text-5xl text-primary/30">favorite</span>
+          <div className="w-24 h-24 mb-8 bg-secondary/10 flex items-center justify-center border border-outline-variant">
+            <span className="material-symbols-outlined text-5xl text-secondary/40">favorite</span>
           </div>
-          <h2 className="text-2xl font-extrabold text-slate-900 mb-3">
-            Your wishlist is feeling a bit lonely
+          <h2 className="text-headline-lg font-display text-on-surface mb-3">
+            Your wishlist is empty
           </h2>
-          <p className="text-slate-500 mb-8 max-w-xs mx-auto">
-            Add your favorite items to keep them saved for later.
+          <p className="text-on-surface-variant mb-8 max-w-xs mx-auto text-body-md">
+            Add your favorite gear to keep it saved for later.
           </p>
           <Link
             href="/shop"
-            className="px-8 py-3 bg-primary hover:bg-primary/90 text-white font-bold rounded-full transition-all flex items-center gap-2"
+            className="px-8 py-3 bg-primary hover:bg-secondary text-white font-label-md uppercase tracking-widest transition-all flex items-center gap-2"
           >
-            <span className="material-icons-outlined">storefront</span>
+            <span className="material-symbols-outlined">storefront</span>
             Continue Shopping
           </Link>
         </div>
@@ -89,10 +89,10 @@ export default function WishlistPage() {
             return (
               <div
                 key={item.productId}
-                className="group relative flex flex-col bg-white rounded-xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300"
+                className="group relative flex flex-col bg-surface-container-lowest overflow-hidden border border-outline-variant hover:border-secondary transition-all duration-300"
               >
                 {/* Image */}
-                <div className="relative aspect-[4/5] overflow-hidden bg-slate-100">
+                <div className="relative aspect-[4/5] overflow-hidden bg-surface-container">
                   {item.imageUrl ? (
                     <img
                       src={item.imageUrl}
@@ -101,7 +101,7 @@ export default function WishlistPage() {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <span className="material-icons-outlined text-6xl text-slate-200">
+                      <span className="material-symbols-outlined text-6xl text-outline-variant">
                         image
                       </span>
                     </div>
@@ -109,20 +109,20 @@ export default function WishlistPage() {
 
                   {/* Overlay Buttons */}
                   <div className="absolute top-3 right-3 flex flex-col gap-2">
-                    <button className="w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow-sm text-primary hover:bg-white transition-colors">
-                      <span className="material-icons-outlined text-xl">favorite</span>
+                    <button className="w-8 h-8 bg-white/90 flex items-center justify-center border border-outline-variant text-secondary hover:bg-white transition-colors">
+                      <span className="material-symbols-outlined text-xl">favorite</span>
                     </button>
                     <button
                       onClick={() => removeItem(item.productId)}
-                      className="w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow-sm text-slate-400 hover:text-red-500 transition-colors"
+                      className="w-8 h-8 bg-white/90 flex items-center justify-center border border-outline-variant text-on-surface-variant hover:text-secondary transition-colors"
                     >
-                      <span className="material-icons-outlined text-lg">close</span>
+                      <span className="material-symbols-outlined text-lg">close</span>
                     </button>
                   </div>
 
                   {/* Discount Badge */}
                   {discount > 0 && (
-                    <div className="absolute bottom-3 left-3 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded">
+                    <div className="absolute bottom-3 left-3 bg-secondary text-white font-label-sm uppercase tracking-widest px-2 py-1">
                       {discount}% OFF
                     </div>
                   )}
@@ -132,18 +132,18 @@ export default function WishlistPage() {
                 <div className="p-5 flex flex-col flex-1">
                   <Link
                     href={`/products/${item.productId}`}
-                    className="font-bold text-slate-800 mb-2 truncate hover:text-primary transition-colors"
+                    className="font-headline-lg text-on-surface mb-2 truncate hover:text-secondary transition-colors"
                   >
                     {item.name}
                   </Link>
 
                   <div className="flex items-center gap-3 mb-6">
-                    <span className="text-lg font-extrabold text-primary">
+                    <span className="text-lg font-bold text-on-surface">
                       {formatCurrency(item.price)}
                     </span>
                     {item.originalPrice &&
                       Number(item.originalPrice) > Number(item.price) && (
-                        <span className="text-sm text-slate-400 line-through">
+                        <span className="text-sm text-on-surface-variant line-through">
                           {formatCurrency(item.originalPrice)}
                         </span>
                       )}
@@ -151,9 +151,9 @@ export default function WishlistPage() {
 
                   <button
                     onClick={() => handleMoveToCart(item)}
-                    className="mt-auto w-full py-3 bg-primary hover:bg-primary/90 text-white font-bold rounded-lg transition-all flex items-center justify-center gap-2"
+                    className="mt-auto w-full py-3 bg-primary hover:bg-secondary text-white font-label-md uppercase tracking-widest transition-all flex items-center justify-center gap-2"
                   >
-                    <span className="material-icons-outlined text-sm">shopping_cart</span>
+                    <span className="material-symbols-outlined text-sm">shopping_cart</span>
                     Move to Cart
                   </button>
                 </div>

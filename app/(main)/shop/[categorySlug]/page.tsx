@@ -15,8 +15,8 @@ export async function generateMetadata({
     categorySlug.slice(1).replace(/-/g, ' ')
 
   return {
-    title: `${title} - Baby Gallery`,
-    description: `Shop ${title} at Baby Gallery. Premium kids fashion and accessories.`,
+    title: `${title} - Tech Gallery`,
+    description: `Browse ${title} at Tech Gallery. High-performance peripherals and gear.`,
   }
 }
 

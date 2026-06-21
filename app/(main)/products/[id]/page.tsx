@@ -19,17 +19,17 @@ export async function generateMetadata({
     const product = res.data
 
     return {
-      title: `${product.name} - Baby Gallery`,
-      description: product.description || `Shop ${product.name} at Baby Gallery. Premium kids fashion and accessories.`,
+      title: `${product.name} - Tech Gallery`,
+      description: product.description || `Buy ${product.name} at Tech Gallery. High-performance peripherals and gear.`,
       openGraph: {
-        title: `${product.name} - Baby Gallery`,
-        description: product.description || `Shop ${product.name} at Baby Gallery.`,
+        title: `${product.name} - Tech Gallery`,
+        description: product.description || `Buy ${product.name} at Tech Gallery.`,
         images: product.photo_url ? [{ url: product.photo_url }] : [],
       },
     }
   } catch {
     return {
-      title: 'Product - Baby Gallery',
+      title: 'Product - Tech Gallery',
     }
   }
 }

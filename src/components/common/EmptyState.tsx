@@ -10,9 +10,9 @@ interface EmptyStateProps {
 export default function EmptyState({ icon, title, description, action }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
-      <span className="material-icons-outlined text-6xl text-slate-200 mb-4">{icon}</span>
-      <h3 className="text-xl font-bold text-slate-800 mb-2">{title}</h3>
-      <p className="text-slate-500 text-sm max-w-md mb-6">{description}</p>
+      <span className="material-symbols-outlined text-6xl text-outline-variant mb-4">{icon}</span>
+      <h3 className="font-headline-lg text-headline-lg-mobile font-black text-on-surface mb-2 uppercase">{title}</h3>
+      <p className="font-body-sm text-body-sm text-on-surface-variant max-w-md mb-6">{description}</p>
       {action}
     </div>
   )

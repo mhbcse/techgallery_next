@@ -11,7 +11,7 @@ import { registerSchema, type RegisterFormData } from '@/lib/validators'
 import { useTitle } from '@/hooks/useTitle'
 
 export default function RegisterPage() {
-  useTitle('Create Account - Baby Gallery')
+  useTitle('Create Account - Tech Gallery')
 
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -48,46 +48,46 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="max-w-5xl w-full bg-white rounded-xl shadow-2xl overflow-hidden flex flex-col md:flex-row border border-pink-100">
+    <div className="max-w-5xl w-full bg-surface-container-lowest overflow-hidden flex flex-col md:flex-row border border-outline-variant">
       {/* Left Side - Decorative */}
-      <div className="md:w-1/2 bg-pink-50 relative p-12 flex flex-col justify-between overflow-hidden">
-        {/* Decorative circles */}
-        <div className="absolute top-0 left-0 w-32 h-32 bg-primary/10 rounded-full -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 right-0 w-64 h-64 bg-primary/5 rounded-full translate-x-1/4 translate-y-1/4" />
-        <div className="absolute top-1/4 right-0 w-16 h-16 bg-pink-200/20 rounded-full blur-xl" />
+      <div className="md:w-1/2 bg-primary-container relative p-12 flex flex-col justify-between overflow-hidden">
+        {/* Decorative shapes */}
+        <div className="absolute top-0 left-0 w-32 h-32 bg-secondary/10 -translate-x-1/2 -translate-y-1/2" />
+        <div className="absolute bottom-0 right-0 w-64 h-64 bg-secondary/5 translate-x-1/4 translate-y-1/4" />
+        <div className="absolute top-1/4 right-0 w-16 h-16 bg-secondary/20 blur-xl" />
 
         <div className="relative z-10">
           {/* Logo */}
           <div className="flex items-center gap-2 mb-8">
-            <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-pink-200">
-              <span className="material-icons-outlined text-white">child_care</span>
+            <div className="w-10 h-10 bg-secondary flex items-center justify-center">
+              <span className="material-symbols-outlined text-white">memory</span>
             </div>
-            <span className="text-2xl font-bold text-slate-800 tracking-tight">Baby Gallery</span>
+            <span className="text-2xl font-display font-bold text-white tracking-tight">Tech Gallery</span>
           </div>
 
-          <h1 className="text-4xl font-extrabold text-slate-800 leading-tight mb-4">
-            Join Our <br /> <span className="text-primary">Happy Family</span>
+          <h1 className="text-display-lg font-display font-extrabold text-white leading-tight mb-4">
+            Join Our <br /> <span className="text-secondary">Operator Network</span>
           </h1>
-          <p className="text-slate-600 text-lg max-w-sm">
-            Discover the finest collection of party dresses, adorable bags, and educational toys for your little ones.
+          <p className="text-white/70 text-lg max-w-sm">
+            Discover the finest collection of hardware, peripherals, and pro-grade gear for your rig.
           </p>
         </div>
 
         <div className="relative z-10 mt-12">
           <img
-            src="/assets/carton-girl.webp"
-            alt="Happy Child"
-            className="rounded-xl shadow-lg border-4 border-white transform -rotate-2 hover:rotate-0 transition-transform duration-500"
+            src="/assets/logo-vertical-transparent-white.png"
+            alt="Tech Gear"
+            className="border border-white/10 transform -rotate-2 hover:rotate-0 transition-transform duration-500"
           />
 
           <div className="mt-8 flex items-center gap-4">
             <div className="flex -space-x-3">
-              <div className="w-10 h-10 rounded-full border-2 border-white bg-pink-200 flex items-center justify-center text-xs font-bold text-primary">A</div>
-              <div className="w-10 h-10 rounded-full border-2 border-white bg-rose-200 flex items-center justify-center text-xs font-bold text-primary">S</div>
-              <div className="w-10 h-10 rounded-full border-2 border-white bg-pink-300 flex items-center justify-center text-xs font-bold text-white">R</div>
+              <div className="w-10 h-10 border-2 border-primary-container bg-secondary/30 flex items-center justify-center text-xs font-bold text-white">A</div>
+              <div className="w-10 h-10 border-2 border-primary-container bg-secondary/50 flex items-center justify-center text-xs font-bold text-white">S</div>
+              <div className="w-10 h-10 border-2 border-primary-container bg-secondary flex items-center justify-center text-xs font-bold text-white">R</div>
             </div>
-            <p className="text-sm text-slate-500">
-              <span className="font-bold text-slate-800">2,000+</span> parents joined this week
+            <p className="text-sm text-white/70">
+              <span className="font-bold text-white">2,000+</span> operators joined this week
             </p>
           </div>
         </div>
@@ -97,22 +97,22 @@ export default function RegisterPage() {
       <div className="md:w-1/2 p-8 md:p-12">
         <div className="max-w-md mx-auto">
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">Create Your Account</h2>
-            <p className="text-slate-500">Please fill in the details below to start shopping.</p>
+            <h2 className="text-headline-lg font-display font-bold text-on-surface mb-2">Create Your Account</h2>
+            <p className="text-on-surface-variant">Please fill in the details below to start shopping.</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {/* Full Name */}
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Full Name</label>
+              <label className="block text-label-sm uppercase tracking-wider text-on-surface-variant mb-1.5">Full Name</label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-                  <span className="material-icons-outlined text-lg">person</span>
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-on-surface-variant">
+                  <span className="material-symbols-outlined text-lg">person</span>
                 </span>
                 <input
                   type="text"
                   placeholder="John Doe"
-                  className={`block w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors text-slate-900 outline-none ${
+                  className={`block w-full pl-10 pr-4 py-3 bg-white border border-outline-variant focus:ring-1 focus:ring-secondary transition-colors text-on-surface outline-none ${
                     errors.name ? 'border-red-400 focus:ring-red-400' : ''
                   }`}
                   {...register('name')}
@@ -123,15 +123,15 @@ export default function RegisterPage() {
 
             {/* Mobile Number */}
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Mobile Number</label>
+              <label className="block text-label-sm uppercase tracking-wider text-on-surface-variant mb-1.5">Mobile Number</label>
               <div className="relative flex">
-                <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-slate-200 bg-slate-100 text-slate-500 text-sm">
+                <span className="inline-flex items-center px-3 border border-r-0 border-outline-variant bg-surface-container text-on-surface-variant text-sm">
                   +880
                 </span>
                 <input
                   type="tel"
                   placeholder="1XXXXXXXXX"
-                  className={`block w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-r-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors text-slate-900 outline-none ${
+                  className={`block w-full px-4 py-3 bg-white border border-outline-variant focus:ring-1 focus:ring-secondary transition-colors text-on-surface outline-none ${
                     errors.phone ? 'border-red-400 focus:ring-red-400' : ''
                   }`}
                   {...register('phone')}
@@ -142,15 +142,15 @@ export default function RegisterPage() {
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-1.5">Email Address</label>
+              <label className="block text-label-sm uppercase tracking-wider text-on-surface-variant mb-1.5">Email Address</label>
               <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-                  <span className="material-icons-outlined text-lg">alternate_email</span>
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-on-surface-variant">
+                  <span className="material-symbols-outlined text-lg">alternate_email</span>
                 </span>
                 <input
                   type="email"
                   placeholder="name@example.com"
-                  className={`block w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors text-slate-900 outline-none ${
+                  className={`block w-full pl-10 pr-4 py-3 bg-white border border-outline-variant focus:ring-1 focus:ring-secondary transition-colors text-on-surface outline-none ${
                     errors.email ? 'border-red-400 focus:ring-red-400' : ''
                   }`}
                   {...register('email')}
@@ -162,15 +162,15 @@ export default function RegisterPage() {
             {/* Password + Confirm side by side */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Password</label>
+                <label className="block text-label-sm uppercase tracking-wider text-on-surface-variant mb-1.5">Password</label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-                    <span className="material-icons-outlined text-lg">lock</span>
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-on-surface-variant">
+                    <span className="material-symbols-outlined text-lg">lock</span>
                   </span>
                   <input
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
-                    className={`block w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors text-slate-900 outline-none ${
+                    className={`block w-full pl-10 pr-10 py-3 bg-white border border-outline-variant focus:ring-1 focus:ring-secondary transition-colors text-on-surface outline-none ${
                       errors.password ? 'border-red-400 focus:ring-red-400' : ''
                     }`}
                     {...register('password')}
@@ -180,7 +180,7 @@ export default function RegisterPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   >
-                    <span className="material-icons-outlined text-slate-400 text-lg">
+                    <span className="material-symbols-outlined text-on-surface-variant text-lg">
                       {showPassword ? 'visibility_off' : 'visibility'}
                     </span>
                   </button>
@@ -188,15 +188,15 @@ export default function RegisterPage() {
                 {errors.password && <p className="mt-1 text-xs text-red-500">{errors.password.message}</p>}
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">Confirm</label>
+                <label className="block text-label-sm uppercase tracking-wider text-on-surface-variant mb-1.5">Confirm</label>
                 <div className="relative">
-                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
-                    <span className="material-icons-outlined text-lg">lock_reset</span>
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-on-surface-variant">
+                    <span className="material-symbols-outlined text-lg">lock_reset</span>
                   </span>
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     placeholder="••••••••"
-                    className={`block w-full pl-10 pr-10 py-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors text-slate-900 outline-none ${
+                    className={`block w-full pl-10 pr-10 py-3 bg-white border border-outline-variant focus:ring-1 focus:ring-secondary transition-colors text-on-surface outline-none ${
                       errors.confirmPassword ? 'border-red-400 focus:ring-red-400' : ''
                     }`}
                     {...register('confirmPassword')}
@@ -206,7 +206,7 @@ export default function RegisterPage() {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center"
                   >
-                    <span className="material-icons-outlined text-slate-400 text-lg">
+                    <span className="material-symbols-outlined text-on-surface-variant text-lg">
                       {showConfirmPassword ? 'visibility_off' : 'visibility'}
                     </span>
                   </button>
@@ -222,16 +222,16 @@ export default function RegisterPage() {
                   type="checkbox"
                   checked={agreedTerms}
                   onChange={(e) => setAgreedTerms(e.target.checked)}
-                  className="w-5 h-5 text-primary border-slate-300 rounded focus:ring-primary focus:ring-offset-0 bg-slate-50 cursor-pointer"
+                  className="w-5 h-5 text-secondary border-outline-variant focus:ring-secondary focus:ring-offset-0 bg-white cursor-pointer"
                 />
               </div>
-              <label className="text-sm text-slate-500 leading-tight">
+              <label className="text-body-sm text-on-surface-variant leading-tight">
                 I agree to the{' '}
-                <Link href="#" className="text-primary hover:underline font-medium">
+                <Link href="#" className="text-secondary hover:underline font-medium">
                   Terms of Service
                 </Link>{' '}
                 and{' '}
-                <Link href="#" className="text-primary hover:underline font-medium">
+                <Link href="#" className="text-secondary hover:underline font-medium">
                   Privacy Policy
                 </Link>
               </label>
@@ -241,22 +241,22 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-primary hover:bg-pink-600 text-white font-bold py-4 rounded-lg shadow-lg shadow-pink-200/50 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-primary hover:bg-secondary text-white font-label-md uppercase tracking-widest py-4 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-2 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting && (
                 <span className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
               )}
-              Join Baby Gallery
-              <span className="material-icons-outlined">arrow_forward</span>
+              Join Tech Gallery
+              <span className="material-symbols-outlined">arrow_forward</span>
             </button>
 
             {/* Divider */}
             <div className="relative my-8">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-slate-200" />
+                <div className="w-full border-t border-outline-variant" />
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-white text-slate-500">Or continue with</span>
+                <span className="px-4 bg-surface-container-lowest text-on-surface-variant text-label-sm uppercase tracking-wider">Or continue with</span>
               </div>
             </div>
 
@@ -264,24 +264,24 @@ export default function RegisterPage() {
             <div className="grid grid-cols-2 gap-4">
               <button
                 type="button"
-                className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 rounded-lg hover:bg-pink-50 transition-colors"
+                className="flex items-center justify-center gap-2 py-2.5 border border-outline-variant hover:bg-surface-container transition-colors"
               >
-                <span className="material-icons-outlined text-lg text-slate-500">g_translate</span>
-                <span className="text-sm font-semibold text-slate-700">Google</span>
+                <span className="material-symbols-outlined text-lg text-on-surface-variant">g_translate</span>
+                <span className="text-sm font-semibold text-on-surface">Google</span>
               </button>
               <button
                 type="button"
-                className="flex items-center justify-center gap-2 py-2.5 border border-slate-200 rounded-lg hover:bg-pink-50 transition-colors"
+                className="flex items-center justify-center gap-2 py-2.5 border border-outline-variant hover:bg-surface-container transition-colors"
               >
-                <span className="text-blue-600 text-xl font-bold leading-none">f</span>
-                <span className="text-sm font-semibold text-slate-700">Facebook</span>
+                <span className="text-secondary text-xl font-bold leading-none">f</span>
+                <span className="text-sm font-semibold text-on-surface">Facebook</span>
               </button>
             </div>
 
             {/* Sign In Link */}
-            <p className="text-center text-sm text-slate-500 mt-8">
+            <p className="text-center text-body-sm text-on-surface-variant mt-8">
               Already have an account?{' '}
-              <Link href="/login" className="text-primary font-bold hover:underline">
+              <Link href="/login" className="text-secondary font-bold hover:underline">
                 Sign In
               </Link>
             </p>

@@ -7,23 +7,23 @@ interface QuantitySelectorProps {
 
 export default function QuantitySelector({ quantity, onChange, min = 1, max = 99 }: QuantitySelectorProps) {
   return (
-    <div className="flex items-center border border-pink-100 rounded-lg overflow-hidden">
+    <div className="flex items-center border border-outline-variant overflow-hidden w-fit">
       <button
         onClick={() => onChange(Math.max(min, quantity - 1))}
-        className="px-3 py-2 text-primary hover:bg-pink-50 transition-colors"
+        className="px-3 py-2 text-on-surface hover:bg-surface-container-low transition-colors disabled:opacity-40"
         disabled={quantity <= min}
       >
-        <span className="material-icons-outlined text-sm">remove</span>
+        <span className="material-symbols-outlined text-sm">remove</span>
       </button>
-      <span className="px-4 py-2 text-sm font-semibold min-w-[3rem] text-center border-x border-pink-100">
+      <span className="px-4 py-2 font-label-md text-label-md font-bold min-w-[3rem] text-center border-x border-outline-variant">
         {quantity}
       </span>
       <button
         onClick={() => onChange(Math.min(max, quantity + 1))}
-        className="px-3 py-2 text-primary hover:bg-pink-50 transition-colors"
+        className="px-3 py-2 text-on-surface hover:bg-surface-container-low transition-colors disabled:opacity-40"
         disabled={quantity >= max}
       >
-        <span className="material-icons-outlined text-sm">add</span>
+        <span className="material-symbols-outlined text-sm">add</span>
       </button>
     </div>
   )

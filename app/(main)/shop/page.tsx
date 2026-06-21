@@ -5,8 +5,8 @@ import type { Product, CategoryTree, PaginatedResponse } from '@/api/types'
 import ShopContent from '@/views/ShopContent'
 
 export const metadata: Metadata = {
-  title: 'Shop - Baby Gallery',
-  description: 'Browse our collection of premium kids fashion, toys, and accessories.',
+  title: 'Shop - Tech Gallery',
+  description: 'Browse high-performance keyboards, mice, audio gear and accessories.',
 }
 
 export default async function ShopPage({

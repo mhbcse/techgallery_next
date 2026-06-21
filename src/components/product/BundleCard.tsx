@@ -17,7 +17,7 @@ export default function BundleCard({ bundle }: BundleCardProps) {
   // bundle price server-side.
   const handleAddBundle = () => {
     if (!bundle.orderable) {
-      toast.error('This bundle is currently out of stock')
+      toast.error('This loadout is currently out of stock')
       return
     }
     addItem({
@@ -25,42 +25,42 @@ export default function BundleCard({ bundle }: BundleCardProps) {
       variantId: `bundle-${bundle.id}`,
       bundleId: bundle.id,
       name: bundle.name,
-      variantName: `Bundle · ${bundle.items.length} items`,
+      variantName: `Kit · ${bundle.items.length} items`,
       price: bundle.price,
       quantity: 1,
       imageUrl: bundle.image_url,
     })
-    toast.success(`${bundle.name} added to bag`)
+    toast.success(`${bundle.name} added to cart`)
   }
 
   const onSale = bundle.original_price != null && bundle.original_price > bundle.price
 
   return (
-    <div className="group block bg-white border border-pink-50 rounded-xl overflow-hidden hover:shadow-xl transition-all duration-300">
+    <div className="group block bg-surface-container-lowest border border-outline-variant overflow-hidden hover:border-secondary transition-all duration-300">
       <div className="relative aspect-[4/5] overflow-hidden">
         <img
-          src={bundle.image_url || '/assets/carton-girl.webp'}
+          src={bundle.image_url || '/assets/logo-vertical-blue.png'}
           alt={bundle.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
-        <span className="absolute top-3 left-3 bg-purple-100 text-purple-800 text-[11px] font-bold px-2 py-0.5 rounded shadow-sm border border-purple-200">
-          BUNDLE
+        <span className="absolute top-3 left-3 bg-primary text-white font-label-sm uppercase tracking-widest px-2 py-1 border border-outline-variant">
+          COMBAT KIT
         </span>
         {!bundle.orderable && (
-          <span className="absolute top-3 right-3 bg-slate-800/80 text-white text-[11px] font-bold px-2 py-0.5 rounded">
+          <span className="absolute top-3 right-3 bg-primary-container text-white font-label-sm uppercase tracking-widest px-2 py-1">
             OUT OF STOCK
           </span>
         )}
       </div>
 
       <div className="p-4">
-        <h3 className="font-bold text-slate-800 mb-1 truncate">{bundle.name}</h3>
-        <p className="text-xs text-slate-400 mb-3">{bundle.items.length} items included</p>
+        <h3 className="font-headline-lg text-on-surface mb-1 truncate">{bundle.name}</h3>
+        <p className="font-label-sm uppercase tracking-wider text-on-surface-variant mb-3">{bundle.items.length} items included</p>
         <div className="flex items-center justify-between">
           <div className="flex items-baseline gap-2">
-            <span className="text-lg font-bold text-primary">{formatCurrency(bundle.price)}</span>
+            <span className="text-lg font-bold text-on-surface">{formatCurrency(bundle.price)}</span>
             {onSale && (
-              <span className="text-sm text-slate-400 line-through">
+              <span className="text-sm text-on-surface-variant line-through">
                 {formatCurrency(bundle.original_price)}
               </span>
             )}
@@ -68,9 +68,9 @@ export default function BundleCard({ bundle }: BundleCardProps) {
           <button
             onClick={handleAddBundle}
             disabled={!bundle.orderable}
-            className="bg-primary hover:bg-primary-dark disabled:bg-slate-300 text-white p-2 rounded-lg transition-colors flex items-center justify-center shadow-lg shadow-primary/20"
+            className="bg-primary hover:bg-secondary disabled:bg-outline-variant text-white p-2 transition-colors flex items-center justify-center"
           >
-            <span className="material-icons-outlined text-sm">shopping_bag</span>
+            <span className="material-symbols-outlined text-sm">shopping_cart</span>
           </button>
         </div>
       </div>

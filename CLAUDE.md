@@ -11,12 +11,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture
 
-Next.js 14 + TypeScript SSR app for a kids' fashion e-commerce storefront ("Baby Gallery"). Deployed on Cloudflare Workers via `@opennextjs/cloudflare`. Uses Tailwind CSS 3 and the `Plus Jakarta Sans` font. Currency is BDT (৳).
+Next.js 14 + TypeScript SSR app for a high-performance PC-peripherals e-commerce storefront ("Tech Gallery" — keyboards, mice, audio gear). Deployed on Cloudflare Workers via `@opennextjs/cloudflare`. Uses Tailwind CSS 3 with an industrial/tech design system (brand accent `#007bff`) and the Hanken Grotesk (display/headlines), Inter (body), and JetBrains Mono (labels) fonts. Currency is BDT (৳).
+
+The storefront is multi-tenant on a shared backend that resolves the store by `Host` header; Tech Gallery points at `https://api.techgallerybd.com`. The UI was built from the mockups in `../ui/` and shares its architecture with the sibling Baby Gallery app.
 
 ### Routing (Next.js App Router)
 
 Route groups defined in `app/` directory:
-- **(main)** — public pages: `/`, `/shop`, `/products/:id`, `/cart`, `/wishlist`
+- **(main)** — public pages: `/`, `/shop`, `/shop/:categorySlug`, `/products/:id`, `/bundles`, `/cart` (cart + checkout), `/wishlist`, `/track-order`
 - **(auth)** — `/login`, `/register`
 - **(dashboard)** — `/account/*` pages (orders, profile, wishlist)
 
@@ -44,5 +46,6 @@ Zod schemas in `src/lib/validators.ts` with `react-hook-form` + `@hookform/resol
 
 ### Environment Variables
 
-- `NEXT_PUBLIC_API_BASE_URL` — backend API base URL
-- `NEXT_PUBLIC_RECAPTCHA_SITE_KEY` — Google reCAPTCHA v3 site key (used during order creation)
+- `NEXT_PUBLIC_API_BASE_URL` — backend API base URL (defaults to `https://api.techgallerybd.com`)
+
+reCAPTCHA is intentionally not used; orders are created without a token.

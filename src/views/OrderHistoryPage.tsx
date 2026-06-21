@@ -13,7 +13,7 @@ import { formatCurrency } from '@/lib/formatCurrency'
 import Spinner from '@/components/ui/Spinner'
 
 export default function OrderHistoryPage() {
-  useTitle('My Orders - Baby Gallery')
+  useTitle('My Orders - Tech Gallery')
 
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -48,7 +48,7 @@ export default function OrderHistoryPage() {
     // Search filter
     if (search) {
       const searchLower = search.toLowerCase()
-      const matchesId = `#bg-${order.id}`.includes(searchLower) || order.id.toString().includes(searchLower)
+      const matchesId = `#tg-${order.id}`.includes(searchLower) || order.id.toString().includes(searchLower)
       if (!matchesId) return false
     }
 
@@ -70,19 +70,19 @@ export default function OrderHistoryPage() {
     switch (order.status) {
       case 'delivered':
         return (
-          <button className="text-xs text-primary font-medium hover:underline">
+          <button className="text-label-sm uppercase tracking-wider text-secondary hover:underline">
             Buy Again
           </button>
         )
       case 'pending':
         return (
-          <button className="text-xs text-red-500 font-medium hover:underline">
+          <button className="text-label-sm uppercase tracking-wider text-red-600 hover:underline">
             Cancel
           </button>
         )
       case 'shipped':
         return (
-          <button className="text-xs text-blue-500 font-medium hover:underline">
+          <button className="text-label-sm uppercase tracking-wider text-secondary hover:underline">
             Track
           </button>
         )
@@ -96,9 +96,9 @@ export default function OrderHistoryPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-extrabold text-slate-900 font-display">My Orders</h1>
+          <h1 className="text-headline-lg font-display text-on-surface">My Orders</h1>
           {pagination && (
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-body-sm text-on-surface-variant mt-1">
               {pagination.total_count} total orders
             </p>
           )}
@@ -106,19 +106,19 @@ export default function OrderHistoryPage() {
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-white rounded-2xl p-4 shadow-sm">
+      <div className="bg-surface-container-lowest border border-outline-variant p-4">
         <div className="flex flex-col sm:flex-row gap-3">
           {/* Search */}
           <div className="relative flex-1">
             <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <span className="material-icons-outlined text-slate-400 text-xl">search</span>
+              <span className="material-symbols-outlined text-outline text-xl">search</span>
             </span>
             <input
               type="text"
               placeholder="Search order ID or product..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent pl-10"
+              className="w-full border border-outline-variant bg-white px-4 py-2.5 text-body-sm transition-all focus:outline-none focus:ring-1 focus:ring-secondary pl-10"
             />
           </div>
 
@@ -126,7 +126,7 @@ export default function OrderHistoryPage() {
           <select
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
-            className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            className="border border-outline-variant bg-white px-4 py-2.5 text-body-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-secondary"
           >
             <option value="all">All Time</option>
             <option value="3">Last 3 Months</option>
@@ -137,7 +137,7 @@ export default function OrderHistoryPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            className="border border-outline-variant bg-white px-4 py-2.5 text-body-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-secondary"
           >
             <option value="all">All Status</option>
             <option value="pending">Pending</option>
@@ -149,56 +149,56 @@ export default function OrderHistoryPage() {
       </div>
 
       {/* Orders Table */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-surface-container-lowest border border-outline-variant overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Spinner />
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
-            <span className="material-icons-outlined text-6xl text-slate-200 mb-4">
+            <span className="material-symbols-outlined text-6xl text-outline-variant mb-4">
               receipt_long
             </span>
-            <h3 className="text-xl font-bold text-slate-800 mb-2">No Orders Found</h3>
-            <p className="text-slate-500 text-sm max-w-md mb-6">
+            <h3 className="text-headline-lg-mobile font-display text-on-surface mb-2">No Orders Found</h3>
+            <p className="text-on-surface-variant text-body-sm max-w-md mb-6">
               {search || statusFilter !== 'all' || dateFilter !== 'all'
                 ? 'Try adjusting your filters to find what you are looking for.'
                 : 'You have not placed any orders yet. Start shopping to see your orders here.'}
             </p>
             <Link
               href="/shop"
-              className="bg-primary text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-primary-dark transition-colors"
+              className="bg-primary text-white px-6 py-3 text-label-md uppercase tracking-widest hover:bg-secondary transition-colors"
             >
               Start Shopping
             </Link>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-body-sm">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-100">
-                  <th className="text-left py-4 px-6 text-slate-500 font-medium">Order ID</th>
-                  <th className="text-left py-4 px-6 text-slate-500 font-medium">Date</th>
-                  <th className="text-left py-4 px-6 text-slate-500 font-medium">Amount</th>
-                  <th className="text-left py-4 px-6 text-slate-500 font-medium">Status</th>
-                  <th className="text-left py-4 px-6 text-slate-500 font-medium">Actions</th>
+                <tr className="bg-surface-container border-b border-outline-variant">
+                  <th className="text-left py-4 px-6 text-on-surface-variant text-label-sm uppercase tracking-wider">Order ID</th>
+                  <th className="text-left py-4 px-6 text-on-surface-variant text-label-sm uppercase tracking-wider">Date</th>
+                  <th className="text-left py-4 px-6 text-on-surface-variant text-label-sm uppercase tracking-wider">Amount</th>
+                  <th className="text-left py-4 px-6 text-on-surface-variant text-label-sm uppercase tracking-wider">Status</th>
+                  <th className="text-left py-4 px-6 text-on-surface-variant text-label-sm uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredOrders.map((order) => (
                   <tr
                     key={order.id}
-                    className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors"
+                    className="border-b border-outline-variant hover:bg-surface-container transition-colors"
                   >
-                    <td className="py-4 px-6 font-semibold text-slate-900">#BG-{order.id}</td>
-                    <td className="py-4 px-6 text-slate-600">
+                    <td className="py-4 px-6 font-label-md text-on-surface">#TG-{order.id}</td>
+                    <td className="py-4 px-6 text-on-surface-variant">
                       {new Date(order.created_at).toLocaleDateString('en-US', {
                         month: 'short',
                         day: 'numeric',
                         year: 'numeric',
                       })}
                     </td>
-                    <td className="py-4 px-6 font-semibold text-slate-900">
+                    <td className="py-4 px-6 font-semibold text-on-surface">
                       {formatCurrency(order.grand_total)}
                     </td>
                     <td className="py-4 px-6">
@@ -208,7 +208,7 @@ export default function OrderHistoryPage() {
                       <div className="flex items-center gap-3">
                         <Link
                           href={`/account/orders/${order.id}`}
-                          className="text-xs text-primary font-medium hover:underline"
+                          className="text-label-sm uppercase tracking-wider text-secondary hover:underline"
                         >
                           View Details
                         </Link>
@@ -233,25 +233,25 @@ export default function OrderHistoryPage() {
       )}
 
       {/* Help CTA */}
-      <div className="bg-white rounded-2xl p-8 shadow-sm text-center">
-        <span className="material-icons-outlined text-4xl text-primary mb-3 block">
+      <div className="bg-primary-container p-8 text-center">
+        <span className="material-symbols-outlined text-4xl text-secondary mb-3 block">
           support_agent
         </span>
-        <h3 className="text-lg font-bold text-slate-900 mb-2">Need Help with an Order?</h3>
-        <p className="text-sm text-slate-500 mb-6">
+        <h3 className="text-headline-lg-mobile font-display text-white mb-2">Need Help with an Order?</h3>
+        <p className="text-body-sm text-white/70 mb-6">
           Our support team is here to assist you with any order-related queries.
         </p>
         <div className="flex items-center justify-center flex-wrap gap-3">
-          <button className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary-dark transition-colors">
-            <span className="material-icons-outlined text-lg">chat</span>
+          <button className="inline-flex items-center gap-2 px-5 py-2.5 bg-secondary text-white text-label-md uppercase tracking-widest hover:bg-white hover:text-primary transition-colors">
+            <span className="material-symbols-outlined text-lg">chat</span>
             Live Chat
           </button>
-          <button className="inline-flex items-center gap-2 px-5 py-2.5 border-2 border-slate-200 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-colors">
-            <span className="material-icons-outlined text-lg">call</span>
+          <button className="inline-flex items-center gap-2 px-5 py-2.5 border border-white/40 text-white text-label-md uppercase tracking-widest hover:bg-white/10 transition-colors">
+            <span className="material-symbols-outlined text-lg">call</span>
             Call
           </button>
-          <button className="inline-flex items-center gap-2 px-5 py-2.5 border-2 border-slate-200 text-slate-700 rounded-xl text-sm font-semibold hover:bg-slate-50 transition-colors">
-            <span className="material-icons-outlined text-lg">help_outline</span>
+          <button className="inline-flex items-center gap-2 px-5 py-2.5 border border-white/40 text-white text-label-md uppercase tracking-widest hover:bg-white/10 transition-colors">
+            <span className="material-symbols-outlined text-lg">help_outline</span>
             FAQs
           </button>
         </div>
