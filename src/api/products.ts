@@ -1,0 +1,18 @@
+import apiClient from './client'
+import type { Product, ProductDetail, PaginatedResponse, SingleResponse } from './types'
+
+export async function listProducts(params?: {
+  search?: string
+  category_id?: number
+  brand_id?: number
+  page?: number
+  per_page?: number
+}): Promise<PaginatedResponse<Product>> {
+  const res = await apiClient.get<PaginatedResponse<Product>>('/api/v1/products', { params })
+  return res.data
+}
+
+export async function getProduct(id: string): Promise<ProductDetail> {
+  const res = await apiClient.get<SingleResponse<ProductDetail>>(`/api/v1/products/${id}`)
+  return res.data.data
+}
