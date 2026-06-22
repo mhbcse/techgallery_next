@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import type { ProductDetail, Variant, Product } from '@/api/types'
@@ -190,6 +191,37 @@ export default function ProductDetailContent({
             <h1 className="font-headline-lg text-headline-lg font-black text-on-surface leading-tight mb-3 uppercase">
               {product.name}
             </h1>
+
+            {(product.category || product.brand) && (
+              <div className="flex items-center gap-2 mb-4 flex-wrap">
+                {product.category &&
+                  (product.category.slug ? (
+                    <Link
+                      href={`/categories/${product.category.slug}`}
+                      className="inline-block px-3 py-1 font-label-sm text-label-sm uppercase tracking-wider border border-outline-variant text-on-surface-variant hover:border-secondary hover:text-secondary transition-colors"
+                    >
+                      {product.category.name}
+                    </Link>
+                  ) : (
+                    <span className="inline-block px-3 py-1 font-label-sm text-label-sm uppercase tracking-wider border border-outline-variant text-on-surface-variant">
+                      {product.category.name}
+                    </span>
+                  ))}
+                {product.brand &&
+                  (product.brand.slug ? (
+                    <Link
+                      href={`/brands/${product.brand.slug}`}
+                      className="inline-block px-3 py-1 font-label-sm text-label-sm uppercase tracking-wider border border-outline-variant text-on-surface-variant hover:border-secondary hover:text-secondary transition-colors"
+                    >
+                      {product.brand.name}
+                    </Link>
+                  ) : (
+                    <span className="inline-block px-3 py-1 font-label-sm text-label-sm uppercase tracking-wider border border-outline-variant text-on-surface-variant">
+                      {product.brand.name}
+                    </span>
+                  ))}
+              </div>
+            )}
 
             <div className="flex items-center gap-2 mb-4 font-body-sm text-body-sm text-on-surface-variant">
               <StarRating rating={4} size="sm" />

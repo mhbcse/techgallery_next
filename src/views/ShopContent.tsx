@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { listProducts } from '@/api/products'
-import type { Product, CategoryTree, Pagination } from '@/api/types'
+import type { Product, CategoryTree, Brand, Pagination } from '@/api/types'
 import ProductGrid from '@/components/product/ProductGrid'
 import PaginationComponent from '@/components/ui/Pagination'
 
@@ -16,25 +16,49 @@ const SORT_OPTIONS = [
   { label: 'Newest First', value: 'newest' },
 ]
 
+interface LockedEntry {
+  id: string
+  name: string
+}
+
 interface ShopContentProps {
   initialProducts: Product[]
   initialPagination: Pagination | null
   categories: CategoryTree[]
-  categorySlug?: string
+  brands: Brand[]
+  lockedCategory?: LockedEntry
+  lockedBrand?: LockedEntry
+}
+
+function parseIds(value: string | null | undefined): string[] {
+  return (value || '').split(',').map((s) => s.trim()).filter(Boolean)
+}
+
+function withLocked(ids: string[], locked?: LockedEntry): string[] {
+  if (!locked) return ids
+  return Array.from(new Set([locked.id, ...ids]))
 }
 
 export default function ShopContent({
   initialProducts,
   initialPagination,
   categories,
-  categorySlug,
+  brands,
+  lockedCategory,
+  lockedBrand,
 }: ShopContentProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
 
   const search = searchParams?.get('search') || ''
   const page = Number(searchParams?.get('page')) || 1
-  const activeCategoryId = searchParams?.get('category_id') || ''
+
+  // Selected ids come from the URL; locked ids (from /categories/:slug or /brands/:slug)
+  // are always applied on top and cannot be removed.
+  const selectedCategoryIds = withLocked(parseIds(searchParams?.get('category_id')), lockedCategory)
+  const selectedBrandIds = withLocked(parseIds(searchParams?.get('brand_id')), lockedBrand)
+  const categoryParam = selectedCategoryIds.join(',')
+  const brandParam = selectedBrandIds.join(',')
 
   const [products, setProducts] = useState<Product[]>(initialProducts)
   const [pagination, setPagination] = useState<Pagination | null>(initialPagination)
@@ -49,7 +73,8 @@ export default function ShopContent({
     setLoading(true)
     const params: Record<string, string | number> = { page }
     if (search) params.search = search
-    if (activeCategoryId) params.category_id = Number(activeCategoryId)
+    if (categoryParam) params.category_id = categoryParam
+    if (brandParam) params.brand_id = brandParam
 
     listProducts(params)
       .then((res) => {
@@ -57,7 +82,7 @@ export default function ShopContent({
         setPagination(res.meta)
       })
       .finally(() => setLoading(false))
-  }, [search, page, activeCategoryId])
+  }, [search, page, categoryParam, brandParam])
 
   const updateParams = (updates: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams?.toString())
@@ -70,19 +95,20 @@ export default function ShopContent({
 
   const handlePageChange = (newPage: number) => updateParams({ page: String(newPage) })
 
-  const handleCategoryToggle = (categoryId: string) => {
-    if (activeCategoryId === categoryId) updateParams({ category_id: null, page: null })
-    else updateParams({ category_id: categoryId, page: null })
+  // Add/remove an id from a comma-joined URL param; resets pagination.
+  const toggleMultiParam = (key: string, id: string) => {
+    const current = parseIds(searchParams?.get(key))
+    const next = current.includes(id) ? current.filter((v) => v !== id) : [...current, id]
+    updateParams({ [key]: next.length ? next.join(',') : null, page: null })
   }
 
   const toggleSpec = (spec: string) =>
     setSelectedSpecs((prev) => (prev.includes(spec) ? prev.filter((s) => s !== spec) : [...prev, spec]))
 
-  const pageTitle = categorySlug
-    ? categorySlug.replace(/-/g, ' ').toUpperCase()
-    : search
-      ? `SEARCH: "${search.toUpperCase()}"`
-      : 'THE ARMORY'
+  const pageTitle =
+    lockedCategory?.name?.toUpperCase() ||
+    lockedBrand?.name?.toUpperCase() ||
+    (search ? `SEARCH: "${search.toUpperCase()}"` : 'THE ARMORY')
 
   return (
     <div className="max-w-container-max mx-auto px-margin-lg py-10">
@@ -121,27 +147,74 @@ export default function ShopContent({
               Hardware Type
             </h3>
             <div className="space-y-2">
-              {categories.map((cat) => (
-                <label key={cat.id} className="flex items-center gap-3 cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    checked={activeCategoryId === cat.id}
-                    onChange={() => handleCategoryToggle(cat.id)}
-                    className="border-outline-variant text-secondary focus:ring-secondary"
-                  />
-                  <span
-                    className={`font-body-sm text-body-sm ${
-                      activeCategoryId === cat.id
-                        ? 'font-semibold text-secondary'
-                        : 'text-on-surface group-hover:text-secondary transition-colors'
-                    }`}
+              {categories.map((cat) => {
+                const checked = selectedCategoryIds.includes(cat.id)
+                const locked = lockedCategory?.id === cat.id
+                return (
+                  <label
+                    key={cat.id}
+                    className={`flex items-center gap-3 group ${locked ? 'cursor-default' : 'cursor-pointer'}`}
                   >
-                    {cat.name}
-                  </span>
-                </label>
-              ))}
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      disabled={locked}
+                      onChange={() => toggleMultiParam('category_id', cat.id)}
+                      className="border-outline-variant text-secondary focus:ring-secondary disabled:opacity-60"
+                    />
+                    <span
+                      className={`font-body-sm text-body-sm ${
+                        checked
+                          ? 'font-semibold text-secondary'
+                          : 'text-on-surface group-hover:text-secondary transition-colors'
+                      }`}
+                    >
+                      {cat.name}
+                    </span>
+                  </label>
+                )
+              })}
               {categories.length === 0 && (
                 <p className="font-body-sm text-body-sm text-outline">No categories available.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Brands */}
+          <div>
+            <h3 className="font-label-md text-label-md font-bold uppercase tracking-wider text-on-surface-variant mb-4 border-l-2 border-secondary pl-2">
+              Brand
+            </h3>
+            <div className="space-y-2">
+              {brands.map((brand) => {
+                const checked = selectedBrandIds.includes(brand.id)
+                const locked = lockedBrand?.id === brand.id
+                return (
+                  <label
+                    key={brand.id}
+                    className={`flex items-center gap-3 group ${locked ? 'cursor-default' : 'cursor-pointer'}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      disabled={locked}
+                      onChange={() => toggleMultiParam('brand_id', brand.id)}
+                      className="border-outline-variant text-secondary focus:ring-secondary disabled:opacity-60"
+                    />
+                    <span
+                      className={`font-body-sm text-body-sm ${
+                        checked
+                          ? 'font-semibold text-secondary'
+                          : 'text-on-surface group-hover:text-secondary transition-colors'
+                      }`}
+                    >
+                      {brand.name}
+                    </span>
+                  </label>
+                )
+              })}
+              {brands.length === 0 && (
+                <p className="font-body-sm text-body-sm text-outline">No brands available.</p>
               )}
             </div>
           </div>

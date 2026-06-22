@@ -3,8 +3,8 @@ import type { Product, ProductDetail, PaginatedResponse, SingleResponse } from '
 
 export async function listProducts(params?: {
   search?: string
-  category_id?: number
-  brand_id?: number
+  category_id?: string
+  brand_id?: string
   page?: number
   per_page?: number
 }): Promise<PaginatedResponse<Product>> {
