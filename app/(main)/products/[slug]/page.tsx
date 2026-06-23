@@ -7,13 +7,13 @@ import ProductDetailContent from '@/views/ProductDetailContent'
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ slug: string }>
 }): Promise<Metadata> {
-  const { id } = await params
+  const { slug } = await params
 
   try {
     const res = await serverFetch<SingleResponse<ProductDetail>>(
-      `/api/v1/products/${id}`,
+      `/api/v1/products/${slug}`,
       { revalidate: 60 }
     )
     const product = res.data
@@ -37,16 +37,16 @@ export async function generateMetadata({
 export default async function ProductDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ slug: string }>
 }) {
-  const { id } = await params
+  const { slug } = await params
 
   let product: ProductDetail | null = null
   let relatedProducts: Product[] = []
 
   try {
     const productRes = await serverFetch<SingleResponse<ProductDetail>>(
-      `/api/v1/products/${id}`,
+      `/api/v1/products/${slug}`,
       { revalidate: 60 }
     )
     product = productRes.data

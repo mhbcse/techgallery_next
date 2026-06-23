@@ -2,16 +2,8 @@ import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { serverFetch } from '@/api/server'
-import type { Product, CategoryTree, Brand, PaginatedResponse } from '@/api/types'
-import ShopContent from '@/views/ShopContent'
-
-async function resolveBrand(slug: string): Promise<{ brands: Brand[]; match: Brand | null }> {
-  const res = await serverFetch<PaginatedResponse<Brand>>('/api/v1/brands?per_page=100', {
-    revalidate: 300,
-  })
-  const brands = res.data || []
-  return { brands, match: brands.find((b) => b.slug === slug) || null }
-}
+import type { Product, CollectionResponse } from '@/api/types'
+import CollectionListing from '@/views/CollectionListing'
 
 export async function generateMetadata({
   params,
@@ -20,11 +12,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params
   try {
-    const { match } = await resolveBrand(slug)
-    if (match) {
+    const res = await serverFetch<CollectionResponse<Product>>(
+      `/api/v1/brands/${slug}/products?page=1`,
+      { revalidate: 300 }
+    )
+    if (res.brand) {
       return {
-        title: `${match.name} - Tech Gallery`,
-        description: `Shop ${match.name} hardware at Tech Gallery.`,
+        title: `${res.brand.name} - Tech Gallery`,
+        description: `Shop ${res.brand.name} hardware at Tech Gallery.`,
       }
     }
   } catch {
@@ -43,48 +38,27 @@ export default async function BrandPage({
   const { slug } = await params
   const sp = await searchParams
   const page = sp.page ? String(sp.page) : '1'
-  const categoryFilter = sp.category_id ? String(sp.category_id) : ''
-  const extraBrandIds = sp.brand_id ? String(sp.brand_id) : ''
 
-  const { brands, match } = await resolveBrand(slug)
-  if (!match) notFound()
-
-  // The locked brand id is always applied, plus any extra brands from the URL.
-  const brandParam = Array.from(
-    new Set([match.id, ...extraBrandIds.split(',').filter(Boolean)])
-  ).join(',')
-
-  let products: Product[] = []
-  let pagination = null
-  let categories: CategoryTree[] = []
-
+  let res: CollectionResponse<Product> | null = null
   try {
-    const queryParts = [`page=${page}`, `brand_id=${brandParam}`]
-    if (categoryFilter) queryParts.push(`category_id=${categoryFilter}`)
-
-    const [productsRes, categoriesRes] = await Promise.all([
-      serverFetch<PaginatedResponse<Product>>(`/api/v1/products?${queryParts.join('&')}`, {
-        revalidate: 60,
-      }),
-      serverFetch<PaginatedResponse<CategoryTree>>('/api/v1/categories?tree=true', {
-        revalidate: 300,
-      }),
-    ])
-    products = productsRes.data
-    pagination = productsRes.meta
-    categories = categoriesRes.data
+    res = await serverFetch<CollectionResponse<Product>>(
+      `/api/v1/brands/${slug}/products?page=${page}`,
+      { revalidate: 60 }
+    )
   } catch {
-    // Fail silently
+    notFound()
   }
+
+  if (!res || !res.brand) notFound()
 
   return (
     <Suspense>
-      <ShopContent
-        initialProducts={products}
-        initialPagination={pagination}
-        categories={categories}
-        brands={brands}
-        lockedBrand={{ id: match.id, name: match.name }}
+      <CollectionListing
+        title={res.brand.name}
+        kind="brand"
+        slug={slug}
+        initialProducts={res.data}
+        initialPagination={res.meta}
       />
     </Suspense>
   )

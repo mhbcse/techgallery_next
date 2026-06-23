@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
-import type { ProductDetail, Variant, Product } from '@/api/types'
+import type { ProductDetail, Variant, Product, Color, Property } from '@/api/types'
 import { useCartStore } from '@/stores/cartStore'
 import { useCartUIStore } from '@/stores/cartUIStore'
 import { useWishlistStore } from '@/stores/wishlistStore'
@@ -47,6 +47,28 @@ const ratingBreakdown = [
   { stars: 1, percentage: 1 },
 ]
 
+// Order a list of {id} entities by the first time each id is referenced across the
+// position-sorted variants; fall back to the original list when nothing matches.
+function orderByVariants<T extends { id: string }>(
+  variants: Variant[],
+  key: 'property_id' | 'color_id',
+  items: T[]
+): T[] {
+  const seen = new Set<string>()
+  const out: T[] = []
+  for (const v of variants) {
+    const refId = v[key]
+    if (refId && !seen.has(refId)) {
+      const found = items.find((i) => i.id === refId)
+      if (found) {
+        seen.add(refId)
+        out.push(found)
+      }
+    }
+  }
+  return out.length ? out : items
+}
+
 interface ProductDetailContentProps {
   product: ProductDetail
   relatedProducts: Product[]
@@ -68,8 +90,19 @@ export default function ProductDetailContent({
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlistStore()
   const inWishlist = isInWishlist(product.id)
 
+  // Variants carry a `position` that defines the intended display order; the API does not
+  // guarantee it returns them sorted. Sort once and drive thumbnails + option pickers from it.
+  const orderedVariants = [...product.variants].sort(
+    (a, b) => (a.position ?? Infinity) - (b.position ?? Infinity)
+  )
+
+  // The properties/colors arrays carry no ordering field, so derive their order from the
+  // position-sorted variants (first appearance wins), falling back to the raw arrays.
+  const orderedProperties = orderByVariants<Property>(orderedVariants, 'property_id', product.properties)
+  const orderedColors = orderByVariants<Color>(orderedVariants, 'color_id', product.colors)
+
   useEffect(() => {
-    const defaultVariant = product.variants.find((v) => v.is_default) || product.variants[0] || null
+    const defaultVariant = orderedVariants.find((v) => v.is_default) || orderedVariants[0] || null
     setSelectedVariant(defaultVariant)
     if (defaultVariant) {
       setSelectedPropertyId(defaultVariant.property_id)
@@ -91,7 +124,7 @@ export default function ProductDetailContent({
   }, [selectedPropertyId, selectedColorId, product])
 
   const thumbnails: string[] = []
-  product.variants.forEach((v) => {
+  orderedVariants.forEach((v) => {
     if (v.image_url && !thumbnails.includes(v.image_url)) thumbnails.push(v.image_url)
   })
   if (thumbnails.length === 0 && product.photo_url) thumbnails.push(product.photo_url)
@@ -123,6 +156,7 @@ export default function ProductDetailContent({
     } else {
       addToWishlist({
         productId: product.id,
+        slug: product.slug,
         name: product.name,
         price: product.price_min,
         originalPrice: product.price_max,
@@ -247,11 +281,11 @@ export default function ProductDetailContent({
               <p className="font-label-sm text-label-sm text-on-primary-container mt-1 uppercase tracking-widest">VAT included</p>
             </div>
 
-            {product.properties.length > 0 && (
+            {orderedProperties.length > 0 && (
               <div className="mb-6">
                 <h3 className="font-label-md text-label-md font-bold uppercase tracking-wider text-on-surface-variant mb-2">Configuration</h3>
                 <div className="grid grid-cols-4 gap-2">
-                  {product.properties.map((prop) => (
+                  {orderedProperties.map((prop) => (
                     <button
                       key={prop.id}
                       onClick={() => setSelectedPropertyId(prop.id)}
@@ -268,13 +302,13 @@ export default function ProductDetailContent({
               </div>
             )}
 
-            {product.colors.length > 0 && (
+            {orderedColors.length > 0 && (
               <div className="mb-6">
                 <h3 className="font-label-md text-label-md font-bold uppercase tracking-wider text-on-surface-variant mb-2">
                   Finish: {selectedColorName || product.color_type || 'Select'}
                 </h3>
                 <div className="flex gap-3">
-                  {product.colors.map((color) => (
+                  {orderedColors.map((color) => (
                     <button
                       key={color.id}
                       onClick={() => setSelectedColorId(color.id)}

@@ -16,27 +16,15 @@ const SORT_OPTIONS = [
   { label: 'Newest First', value: 'newest' },
 ]
 
-interface LockedEntry {
-  id: string
-  name: string
-}
-
 interface ShopContentProps {
   initialProducts: Product[]
   initialPagination: Pagination | null
   categories: CategoryTree[]
   brands: Brand[]
-  lockedCategory?: LockedEntry
-  lockedBrand?: LockedEntry
 }
 
 function parseIds(value: string | null | undefined): string[] {
   return (value || '').split(',').map((s) => s.trim()).filter(Boolean)
-}
-
-function withLocked(ids: string[], locked?: LockedEntry): string[] {
-  if (!locked) return ids
-  return Array.from(new Set([locked.id, ...ids]))
 }
 
 export default function ShopContent({
@@ -44,8 +32,6 @@ export default function ShopContent({
   initialPagination,
   categories,
   brands,
-  lockedCategory,
-  lockedBrand,
 }: ShopContentProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -53,10 +39,9 @@ export default function ShopContent({
   const search = searchParams?.get('search') || ''
   const page = Number(searchParams?.get('page')) || 1
 
-  // Selected ids come from the URL; locked ids (from /categories/:slug or /brands/:slug)
-  // are always applied on top and cannot be removed.
-  const selectedCategoryIds = withLocked(parseIds(searchParams?.get('category_id')), lockedCategory)
-  const selectedBrandIds = withLocked(parseIds(searchParams?.get('brand_id')), lockedBrand)
+  // Selected filter ids come from the URL (comma-separated, multi-select).
+  const selectedCategoryIds = parseIds(searchParams?.get('category_id'))
+  const selectedBrandIds = parseIds(searchParams?.get('brand_id'))
   const categoryParam = selectedCategoryIds.join(',')
   const brandParam = selectedBrandIds.join(',')
 
@@ -105,10 +90,7 @@ export default function ShopContent({
   const toggleSpec = (spec: string) =>
     setSelectedSpecs((prev) => (prev.includes(spec) ? prev.filter((s) => s !== spec) : [...prev, spec]))
 
-  const pageTitle =
-    lockedCategory?.name?.toUpperCase() ||
-    lockedBrand?.name?.toUpperCase() ||
-    (search ? `SEARCH: "${search.toUpperCase()}"` : 'THE ARMORY')
+  const pageTitle = search ? `SEARCH: "${search.toUpperCase()}"` : 'THE ARMORY'
 
   return (
     <div className="max-w-container-max mx-auto px-margin-lg py-10">
@@ -149,18 +131,16 @@ export default function ShopContent({
             <div className="space-y-2">
               {categories.map((cat) => {
                 const checked = selectedCategoryIds.includes(cat.id)
-                const locked = lockedCategory?.id === cat.id
                 return (
                   <label
                     key={cat.id}
-                    className={`flex items-center gap-3 group ${locked ? 'cursor-default' : 'cursor-pointer'}`}
+                    className="flex items-center gap-3 group cursor-pointer"
                   >
                     <input
                       type="checkbox"
                       checked={checked}
-                      disabled={locked}
                       onChange={() => toggleMultiParam('category_id', cat.id)}
-                      className="border-outline-variant text-secondary focus:ring-secondary disabled:opacity-60"
+                      className="border-outline-variant text-secondary focus:ring-secondary"
                     />
                     <span
                       className={`font-body-sm text-body-sm ${
@@ -188,18 +168,16 @@ export default function ShopContent({
             <div className="space-y-2">
               {brands.map((brand) => {
                 const checked = selectedBrandIds.includes(brand.id)
-                const locked = lockedBrand?.id === brand.id
                 return (
                   <label
                     key={brand.id}
-                    className={`flex items-center gap-3 group ${locked ? 'cursor-default' : 'cursor-pointer'}`}
+                    className="flex items-center gap-3 group cursor-pointer"
                   >
                     <input
                       type="checkbox"
                       checked={checked}
-                      disabled={locked}
                       onChange={() => toggleMultiParam('brand_id', brand.id)}
-                      className="border-outline-variant text-secondary focus:ring-secondary disabled:opacity-60"
+                      className="border-outline-variant text-secondary focus:ring-secondary"
                     />
                     <span
                       className={`font-body-sm text-body-sm ${

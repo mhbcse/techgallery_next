@@ -20,9 +20,13 @@ export default function CartAddedModal() {
 
   // Quick-add: fetch the product's default variant and drop it straight into the cart.
   const quickAdd = async (product: Product) => {
+    if (!product.slug) {
+      toast.error('This unit is unavailable')
+      return
+    }
     setAddingId(product.id)
     try {
-      const detail = await getProduct(product.id)
+      const detail = await getProduct(product.slug)
       const variant = detail.variants.find((v) => v.is_default) || detail.variants[0]
       if (!variant) {
         toast.error('This unit is unavailable')

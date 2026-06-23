@@ -16,14 +16,14 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleAddToLoadout = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    router.push(`/products/${product.id}`)
+    router.push(`/products/${product.slug}`)
   }
 
   const hasDiscount = product.price_min !== product.price_max
 
   return (
     <Link
-      href={`/products/${product.id}`}
+      href={`/products/${product.slug}`}
       className="group flex flex-col justify-between bg-white border border-outline-variant p-6 hover:border-secondary transition-all"
     >
       <div>

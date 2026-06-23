@@ -131,7 +131,7 @@ export default async function HomePage() {
               {/* Large feature */}
               {feature && (
                 <Link
-                  href={`/products/${feature.id}`}
+                  href={`/products/${feature.slug}`}
                   className="lg:col-span-3 bg-white border border-outline-variant p-1 group overflow-hidden"
                 >
                   <div className="relative h-full min-h-[400px]">

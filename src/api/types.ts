@@ -17,6 +17,7 @@ export interface Customer {
 export interface Product {
   id: string
   name: string
+  slug: string | null
   description: string | null
   price_min: number | null
   price_max: number | null
@@ -124,6 +125,15 @@ export interface PaginatedResponse<T> {
 
 export interface SingleResponse<T> {
   data: T
+}
+
+// Response from the nested slug endpoints /categories/:slug/products and
+// /brands/:slug/products: a page of products plus the resolved entity for the heading.
+export interface CollectionResponse<T> {
+  data: T[]
+  meta: Pagination
+  category?: Category
+  brand?: Brand
 }
 
 export interface ApiError {

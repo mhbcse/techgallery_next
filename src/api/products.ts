@@ -12,7 +12,7 @@ export async function listProducts(params?: {
   return res.data
 }
 
-export async function getProduct(id: string): Promise<ProductDetail> {
-  const res = await apiClient.get<SingleResponse<ProductDetail>>(`/api/v1/products/${id}`)
+export async function getProduct(slug: string): Promise<ProductDetail> {
+  const res = await apiClient.get<SingleResponse<ProductDetail>>(`/api/v1/products/${slug}`)
   return res.data.data
 }

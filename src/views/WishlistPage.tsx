@@ -130,12 +130,16 @@ export default function WishlistPage() {
 
                 {/* Content */}
                 <div className="p-5 flex flex-col flex-1">
-                  <Link
-                    href={`/products/${item.productId}`}
-                    className="font-headline-lg text-on-surface mb-2 truncate hover:text-secondary transition-colors"
-                  >
-                    {item.name}
-                  </Link>
+                  {item.slug ? (
+                    <Link
+                      href={`/products/${item.slug}`}
+                      className="font-headline-lg text-on-surface mb-2 truncate hover:text-secondary transition-colors"
+                    >
+                      {item.name}
+                    </Link>
+                  ) : (
+                    <span className="font-headline-lg text-on-surface mb-2 truncate">{item.name}</span>
+                  )}
 
                   <div className="flex items-center gap-3 mb-6">
                     <span className="text-lg font-bold text-on-surface">

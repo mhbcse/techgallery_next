@@ -1,5 +1,5 @@
 import apiClient from './client'
-import type { CategoryTree, PaginatedResponse, SingleResponse } from './types'
+import type { CategoryTree, Product, CollectionResponse, PaginatedResponse } from './types'
 
 export async function listCategories(params?: {
   tree?: string
@@ -10,7 +10,14 @@ export async function listCategories(params?: {
   return res.data
 }
 
-export async function getCategory(id: string): Promise<CategoryTree> {
-  const res = await apiClient.get<SingleResponse<CategoryTree>>(`/api/v1/categories/${id}`)
-  return res.data.data
+// Paginated products for a category (by slug), plus the resolved category for the heading.
+export async function getCategoryProducts(
+  slug: string,
+  params?: { page?: number; per_page?: number }
+): Promise<CollectionResponse<Product>> {
+  const res = await apiClient.get<CollectionResponse<Product>>(
+    `/api/v1/categories/${slug}/products`,
+    { params }
+  )
+  return res.data
 }
