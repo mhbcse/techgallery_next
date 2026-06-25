@@ -8,7 +8,9 @@ import { readCookie, setCookie } from './cookies'
 
 const SESSION_KEY = 'attr-session-id'
 const VISITOR_KEY = 'attr-visitor-id'
-const COOKIE_MAX_AGE = 90 * 24 * 60 * 60 // 90 days, matches the storefront tracking cookies
+// Ad-attribution window for the `_<param>` cookies — matches the storefront and the 7-day
+// click window of the Google conversion action / Meta default.
+const ATTRIBUTION_MAX_AGE = 7 * 24 * 60 * 60
 
 // URL params captured into first-party `_<param>` cookies (names match the storefront).
 const URL_PARAM_KEYS: (keyof OrderTracking)[] = [
@@ -54,18 +56,21 @@ export function getSessionId(): string {
   return id
 }
 
-// Merge first-touch URL params + referrer into the shared `_<param>` cookies and return
-// the full attribution object. Existing cookie values are preserved (first-touch wins).
+// Write URL params into the shared `_<param>` cookies and return the full attribution
+// object. Last-touch (matches the eshops_storefront standard): a campaigned visit
+// overwrites the stored value, so the most recent campaign wins. Referrer is kept
+// first-touch — unlike campaign params it appears on every navigation, so overwriting
+// would replace the original external source with an in-site page.
 export function captureAttribution(): OrderTracking {
   if (typeof window === 'undefined') return {}
 
   const params = new URLSearchParams(window.location.search)
   for (const key of URL_PARAM_KEYS) {
     const value = params.get(key)
-    if (value && !readCookie(`_${key}`)) setCookie(`_${key}`, value, COOKIE_MAX_AGE)
+    if (value) setCookie(`_${key}`, value, ATTRIBUTION_MAX_AGE)
   }
 
-  if (document.referrer && !readCookie('_referrer')) setCookie('_referrer', document.referrer, COOKIE_MAX_AGE)
+  if (document.referrer && !readCookie('_referrer')) setCookie('_referrer', document.referrer, ATTRIBUTION_MAX_AGE)
 
   return getStoredTracking()
 }

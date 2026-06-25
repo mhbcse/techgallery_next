@@ -39,11 +39,11 @@ describe('captureAttribution', () => {
     expect(readCookie('_fbclid')).toBe('xyz')
   })
 
-  it('is first-touch: does not overwrite an already-stored value', () => {
+  it('is last-touch: a new campaigned visit overwrites the stored value', () => {
     setCookie('_utm_source', 'original', 3600)
     setLocation('?utm_source=newvalue')
     captureAttribution()
-    expect(readCookie('_utm_source')).toBe('original')
+    expect(readCookie('_utm_source')).toBe('newvalue')
   })
 })
 
