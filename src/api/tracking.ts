@@ -5,11 +5,13 @@ export type VisitPayload = { session_id: string } & Pick<
   OrderTracking,
   | 'visitor_id'
   | 'referrer'
+  | 'full_url'
   | 'utm_source'
   | 'utm_medium'
   | 'utm_campaign'
   | 'utm_content'
   | 'utm_term'
+  | 'utm_id'
   | 'fbclid'
   | 'gclid'
   | 'ttclid'

@@ -1,23 +1,14 @@
 import type { Metadata } from 'next'
+import ProtectedContact from '@/components/common/ProtectedContact'
 
 export const metadata: Metadata = {
   title: 'Contact - Tech Gallery',
   description: 'Get in touch with Tech Gallery. Phone, address and location for technical support and sales.',
 }
 
-const channels = [
-  {
-    icon: 'call',
-    label: 'Hotline',
-    lines: ['01313 665522'],
-    href: 'tel:+8801313665522',
-  },
-  {
-    icon: 'mail',
-    label: 'Email',
-    lines: ['info@techgallerybd.com'],
-    href: 'mailto:info@techgallerybd.com',
-  },
+// Phone & email are rendered via ProtectedContact so they never appear as
+// plaintext in the server HTML (anti-scraping). Hours has no sensitive data.
+const channels: { icon: string; label: string; lines: string[]; href?: string }[] = [
   {
     icon: 'schedule',
     label: 'Operating Hours',
@@ -57,6 +48,20 @@ export default function ContactPage() {
 
           {/* Channels */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <ProtectedContact
+              icon="call"
+              label="Hotline"
+              encoded="MDEzMTMgNjY1NTIy"
+              scheme="tel"
+              encodedHref="Kzg4MDEzMTM2NjU1MjI="
+            />
+            <ProtectedContact
+              icon="mail"
+              label="Email"
+              encoded="aW5mb0B0ZWNoZ2FsbGVyeWJkLmNvbQ=="
+              scheme="mailto"
+              encodedHref="aW5mb0B0ZWNoZ2FsbGVyeWJkLmNvbQ=="
+            />
             {channels.map((c) => {
               const body = (
                 <>

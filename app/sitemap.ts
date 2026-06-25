@@ -1,7 +1,8 @@
 import type { MetadataRoute } from 'next'
+import { SITE_DOMAIN } from '@/lib/constants'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://techgallerybd.com'
+  const baseUrl = `https://${SITE_DOMAIN}`
 
   return [
     {

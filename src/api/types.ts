@@ -184,11 +184,13 @@ export interface Bundle {
 // Attribution data injected by the storefront on order creation / cart capture.
 export interface OrderTracking {
   referrer?: string
+  full_url?: string
   utm_source?: string
   utm_medium?: string
   utm_campaign?: string
   utm_content?: string
   utm_term?: string
+  utm_id?: string
   fbclid?: string
   fbc?: string
   fbp?: string

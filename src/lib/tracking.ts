@@ -1,18 +1,23 @@
 import type { OrderTracking } from '@/api/types'
+import { readCookie, setCookie } from './cookies'
 
-// Persisted attribution captured from the landing URL + Meta cookies, replayed
-// onto order creation and abandoned-cart capture.
+// Attribution captured from the landing URL + Meta cookies, persisted as first-party
+// `_<param>` cookies on the registrable root (same names as the eshops_storefront landing
+// pages) so it is shared across the merchant's subdomains, then replayed onto order
+// creation and abandoned-cart capture. Visitor/session ids stay in web storage.
 
-const STORAGE_KEY = 'attribution'
 const SESSION_KEY = 'attr-session-id'
 const VISITOR_KEY = 'attr-visitor-id'
+const COOKIE_MAX_AGE = 90 * 24 * 60 * 60 // 90 days, matches the storefront tracking cookies
 
+// URL params captured into first-party `_<param>` cookies (names match the storefront).
 const URL_PARAM_KEYS: (keyof OrderTracking)[] = [
   'utm_source',
   'utm_medium',
   'utm_campaign',
   'utm_content',
   'utm_term',
+  'utm_id',
   'fbclid',
   'gclid',
   'wbraid',
@@ -26,12 +31,6 @@ const URL_PARAM_KEYS: (keyof OrderTracking)[] = [
 function randomId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID()
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`
-}
-
-function readCookie(name: string): string | undefined {
-  if (typeof document === 'undefined') return undefined
-  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`))
-  return match ? decodeURIComponent(match[1]) : undefined
 }
 
 // Stable per-browser visitor id (localStorage) and per-tab session id (sessionStorage).
@@ -55,40 +54,42 @@ export function getSessionId(): string {
   return id
 }
 
-// Merge first-touch URL params + live Meta cookies into stored attribution.
-// Existing non-empty values are preserved (first-touch wins for utm/click ids).
+// Merge first-touch URL params + referrer into the shared `_<param>` cookies and return
+// the full attribution object. Existing cookie values are preserved (first-touch wins).
 export function captureAttribution(): OrderTracking {
   if (typeof window === 'undefined') return {}
 
-  const stored = getStoredTracking()
   const params = new URLSearchParams(window.location.search)
-
   for (const key of URL_PARAM_KEYS) {
     const value = params.get(key)
-    if (value && !stored[key]) stored[key] = value
+    if (value && !readCookie(`_${key}`)) setCookie(`_${key}`, value, COOKIE_MAX_AGE)
   }
 
-  if (!stored.referrer && document.referrer) stored.referrer = document.referrer
+  if (document.referrer && !readCookie('_referrer')) setCookie('_referrer', document.referrer, COOKIE_MAX_AGE)
 
-  // _fbp / _fbc are refreshed on every load (cookie is the source of truth).
-  const fbp = readCookie('_fbp')
-  const fbc = readCookie('_fbc')
-  if (fbp) stored.fbp = fbp
-  if (fbc) stored.fbc = fbc
-
-  stored.session_id = getSessionId()
-  stored.visitor_id = getVisitorId()
-
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(stored))
-  return stored
+  return getStoredTracking()
 }
 
 export function getStoredTracking(): OrderTracking {
   if (typeof window === 'undefined') return {}
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    return raw ? (JSON.parse(raw) as OrderTracking) : {}
-  } catch {
-    return {}
+
+  const tracking: OrderTracking = {}
+  for (const key of URL_PARAM_KEYS) {
+    const value = readCookie(`_${key}`)
+    if (value) tracking[key] = value
   }
+
+  const referrer = readCookie('_referrer')
+  if (referrer) tracking.referrer = referrer
+
+  // _fbp / _fbc are set by Meta's pixel; the cookie is the source of truth.
+  const fbp = readCookie('_fbp')
+  const fbc = readCookie('_fbc')
+  if (fbp) tracking.fbp = fbp
+  if (fbc) tracking.fbc = fbc
+
+  tracking.session_id = getSessionId()
+  tracking.visitor_id = getVisitorId()
+
+  return tracking
 }
