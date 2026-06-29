@@ -3,8 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { listProducts } from '@/api/products'
-import type { Product, CategoryTree, Brand, Pagination } from '@/api/types'
-import ProductGrid from '@/components/product/ProductGrid'
+import type { Product, Bundle, CategoryTree, Brand, Pagination } from '@/api/types'
+import CatalogGrid from '@/components/product/CatalogGrid'
+import { mergeCatalog } from '@/lib/catalog'
 import PaginationComponent from '@/components/ui/Pagination'
 
 const SPEC_TAGS = ['Wireless', 'RGB', 'Mechanical', 'OLED', '8K Polling', 'Hot-Swap']
@@ -21,6 +22,7 @@ interface ShopContentProps {
   initialPagination: Pagination | null
   categories: CategoryTree[]
   brands: Brand[]
+  bundles: Bundle[]
 }
 
 function parseIds(value: string | null | undefined): string[] {
@@ -32,6 +34,7 @@ export default function ShopContent({
   initialPagination,
   categories,
   brands,
+  bundles,
 }: ShopContentProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -91,6 +94,14 @@ export default function ShopContent({
     setSelectedSpecs((prev) => (prev.includes(spec) ? prev.filter((s) => s !== spec) : [...prev, spec]))
 
   const pageTitle = search ? `SEARCH: "${search.toUpperCase()}"` : 'THE ARMORY'
+
+  // Bundles carry no category/brand/search in the API, so only surface them on the
+  // unfiltered first page; otherwise show products alone.
+  const filtersActive = !!(search || selectedCategoryIds.length || selectedBrandIds.length)
+  const entries =
+    !filtersActive && page === 1
+      ? mergeCatalog(products, bundles)
+      : products.map((product) => ({ kind: 'product' as const, product }))
 
   return (
     <div className="max-w-container-max mx-auto px-margin-lg py-10">
@@ -246,7 +257,7 @@ export default function ShopContent({
 
         {/* Product grid */}
         <div className="flex-1 min-w-0">
-          <ProductGrid products={products} loading={loading} />
+          <CatalogGrid entries={entries} loading={loading} />
           {pagination && (
             <PaginationComponent
               currentPage={pagination.current_page}

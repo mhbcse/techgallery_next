@@ -9,10 +9,12 @@ export async function listOrders(params?: {
   return res.data
 }
 
-// Each order_items line carries exactly one of variant_id or bundle_id.
+// Each order_items line carries exactly one of variant_id, bundle_variant_id, or
+// quantity_tier_id (most-specific wins server-side). Pricing is recomputed in Rails.
 export type OrderItemInput =
   | { variant_id: number; quantity: number }
-  | { bundle_id: number; quantity: number }
+  | { bundle_variant_id: number; quantity: number }
+  | { quantity_tier_id: number; quantity: number }
 
 export async function createOrder(data: {
   order?: {

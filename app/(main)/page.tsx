@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { serverFetch } from '@/api/server'
-import type { Product, PaginatedResponse } from '@/api/types'
+import type { Product, Bundle, PaginatedResponse } from '@/api/types'
 import ProductCard from '@/components/product/ProductCard'
+import BundleCard from '@/components/product/BundleCard'
+import { mergeCatalog } from '@/lib/catalog'
 
 export const metadata: Metadata = {
   title: 'Tech Gallery - High-Performance Peripherals',
@@ -30,19 +32,26 @@ const specs = [
 
 export default async function HomePage() {
   let products: Product[] = []
+  let bundles: Bundle[] = []
 
   try {
-    const res = await serverFetch<PaginatedResponse<Product>>(
-      '/api/v1/products?per_page=8',
-      { revalidate: 60 }
-    )
-    products = res.data
+    const [productsRes, bundlesRes] = await Promise.all([
+      serverFetch<PaginatedResponse<Product>>('/api/v1/products?per_page=8', {
+        revalidate: 60,
+      }),
+      serverFetch<PaginatedResponse<Bundle>>('/api/v1/bundles?per_page=4', {
+        revalidate: 60,
+      }).catch(() => ({ data: [] as Bundle[] })),
+    ])
+    products = productsRes.data
+    bundles = bundlesRes.data
   } catch {
     // Fail silently — show page without products
   }
 
   const feature = products[0]
-  const gridProducts = products.slice(1, 5)
+  // Interleave bundles into the secondary cards, keeping the grid tidy at 4 tiles.
+  const secondaryEntries = mergeCatalog(products.slice(1, 5), bundles, 2).slice(0, 4)
 
   return (
     <div className="overflow-x-hidden">
@@ -152,11 +161,15 @@ export default async function HomePage() {
                 </Link>
               )}
 
-              {/* Secondary product cards */}
+              {/* Secondary cards — products interleaved with bundle kits */}
               <div className="lg:col-span-3 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {gridProducts.map((p) => (
-                  <ProductCard key={p.id} product={p} />
-                ))}
+                {secondaryEntries.map((entry) =>
+                  entry.kind === 'bundle' ? (
+                    <BundleCard key={`bundle-${entry.bundle.id}`} bundle={entry.bundle} />
+                  ) : (
+                    <ProductCard key={`product-${entry.product.id}`} product={entry.product} />
+                  )
+                )}
               </div>
 
               {/* Specs bar */}

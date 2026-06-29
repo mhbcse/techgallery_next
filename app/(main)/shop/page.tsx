@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import { serverFetch } from '@/api/server'
-import type { Product, CategoryTree, Brand, PaginatedResponse } from '@/api/types'
+import type { Product, Bundle, CategoryTree, Brand, PaginatedResponse } from '@/api/types'
 import ShopContent from '@/views/ShopContent'
 
 export const metadata: Metadata = {
@@ -24,6 +24,7 @@ export default async function ShopPage({
   let pagination = null
   let categories: CategoryTree[] = []
   let brands: Brand[] = []
+  let bundles: Bundle[] = []
 
   try {
     const queryParts = [`page=${page}`]
@@ -31,7 +32,7 @@ export default async function ShopPage({
     if (categoryId) queryParts.push(`category_id=${categoryId}`)
     if (brandId) queryParts.push(`brand_id=${brandId}`)
 
-    const [productsRes, categoriesRes, brandsRes] = await Promise.all([
+    const [productsRes, categoriesRes, brandsRes, bundlesRes] = await Promise.all([
       serverFetch<PaginatedResponse<Product>>(
         `/api/v1/products?${queryParts.join('&')}`,
         { revalidate: 60 }
@@ -44,12 +45,17 @@ export default async function ShopPage({
         '/api/v1/brands?per_page=100',
         { revalidate: 300 }
       ),
+      serverFetch<PaginatedResponse<Bundle>>(
+        '/api/v1/bundles?per_page=12',
+        { revalidate: 60 }
+      ).catch(() => ({ data: [] as Bundle[] })),
     ])
 
     products = productsRes.data
     pagination = productsRes.meta
     categories = categoriesRes.data
     brands = brandsRes.data
+    bundles = bundlesRes.data
   } catch {
     // Fail silently
   }
@@ -61,6 +67,7 @@ export default async function ShopPage({
         initialPagination={pagination}
         categories={categories}
         brands={brands}
+        bundles={bundles}
       />
     </Suspense>
   )

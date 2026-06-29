@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
-import type { ProductDetail, Variant, Product, Color, Property } from '@/api/types'
+import type { ProductDetail, Variant, Product, Color, Property, Offer } from '@/api/types'
 import { useCartStore } from '@/stores/cartStore'
 import { useCartUIStore } from '@/stores/cartUIStore'
 import { useWishlistStore } from '@/stores/wishlistStore'
@@ -82,6 +82,7 @@ export default function ProductDetailContent({
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null)
   const [selectedColorId, setSelectedColorId] = useState<string | null>(null)
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null)
+  const [selectedOfferId, setSelectedOfferId] = useState<string | null>(null)
   const [quantity, setQuantity] = useState(1)
   const [activeTab, setActiveTab] = useState<Tab>('description')
 
@@ -121,6 +122,8 @@ export default function ProductDetailContent({
       setSelectedVariant(match)
       if (match.image_url) setMainImage(match.image_url)
     }
+    // Offers are variant-specific — clear the selection when the variant changes.
+    setSelectedOfferId(null)
   }, [selectedPropertyId, selectedColorId, product])
 
   const thumbnails: string[] = []
@@ -133,17 +136,36 @@ export default function ProductDetailContent({
   const stockCount = selectedVariant?.available_stock ?? 0
   const inStock = stockCount > 0
 
+  // Quantity offers tied to the currently selected variant, and the picked one.
+  const variantOffers = selectedVariant
+    ? product.offers.filter((o) => o.variant_id === selectedVariant.id)
+    : []
+  const selectedOffer = variantOffers.find((o) => o.id === selectedOfferId) || null
+
   const handleAddToCart = () => {
     if (!selectedVariant) return
-    const cartItem = {
-      productId: product.id,
-      variantId: selectedVariant.id,
-      name: product.name,
-      variantName: selectedVariant.name || product.name,
-      price: Number(selectedVariant.price),
-      quantity,
-      imageUrl: selectedVariant.image_url || product.thumbnail_url || product.photo_url,
-    }
+    // An offer line orders the whole tier via quantity_tier_id; `quantity` is the
+    // multiplier. Otherwise place the regular variant line.
+    const cartItem = selectedOffer
+      ? {
+          productId: product.id,
+          variantId: `offer-${selectedOffer.id}`,
+          quantityTierId: selectedOffer.id,
+          name: product.name,
+          variantName: `${selectedOffer.variant_name} · Buy ${selectedOffer.quantity}`,
+          price: Number(selectedOffer.price),
+          quantity,
+          imageUrl: selectedVariant.image_url || product.thumbnail_url || product.photo_url,
+        }
+      : {
+          productId: product.id,
+          variantId: selectedVariant.id,
+          name: product.name,
+          variantName: selectedVariant.name || product.name,
+          price: Number(selectedVariant.price),
+          quantity,
+          imageUrl: selectedVariant.image_url || product.thumbnail_url || product.photo_url,
+        }
     addItem(cartItem)
     toast.success('Added to loadout')
     openCartAdded(cartItem, relatedProducts)
@@ -226,21 +248,26 @@ export default function ProductDetailContent({
               {product.name}
             </h1>
 
-            {(product.category || product.brand) && (
+            {(product.categories.length > 0 || product.brand) && (
               <div className="flex items-center gap-2 mb-4 flex-wrap">
-                {product.category &&
-                  (product.category.slug ? (
+                {product.categories.map((category) =>
+                  category.slug ? (
                     <Link
-                      href={`/categories/${product.category.slug}`}
+                      key={category.id}
+                      href={`/categories/${category.slug}`}
                       className="inline-block px-3 py-1 font-label-sm text-label-sm uppercase tracking-wider border border-outline-variant text-on-surface-variant hover:border-secondary hover:text-secondary transition-colors"
                     >
-                      {product.category.name}
+                      {category.name}
                     </Link>
                   ) : (
-                    <span className="inline-block px-3 py-1 font-label-sm text-label-sm uppercase tracking-wider border border-outline-variant text-on-surface-variant">
-                      {product.category.name}
+                    <span
+                      key={category.id}
+                      className="inline-block px-3 py-1 font-label-sm text-label-sm uppercase tracking-wider border border-outline-variant text-on-surface-variant"
+                    >
+                      {category.name}
                     </span>
-                  ))}
+                  )
+                )}
                 {product.brand &&
                   (product.brand.slug ? (
                     <Link
@@ -280,6 +307,49 @@ export default function ProductDetailContent({
               </div>
               <p className="font-label-sm text-label-sm text-on-primary-container mt-1 uppercase tracking-widest">VAT included</p>
             </div>
+
+            {variantOffers.length > 0 && (
+              <div className="mb-6">
+                <h3 className="font-label-md text-label-md font-bold uppercase tracking-wider text-on-surface-variant mb-2">Bulk Offers</h3>
+                <div className="flex flex-col gap-2">
+                  {variantOffers.map((offer) => {
+                    const active = selectedOfferId === offer.id
+                    const save =
+                      offer.original_price != null ? offer.original_price - offer.price : 0
+                    return (
+                      <button
+                        key={offer.id}
+                        onClick={() => setSelectedOfferId(active ? null : offer.id)}
+                        className={`flex items-center justify-between px-4 py-3 border text-left transition-colors ${
+                          active
+                            ? 'border-2 border-secondary bg-secondary/10'
+                            : 'border-outline-variant hover:border-secondary'
+                        }`}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span
+                            className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
+                              active ? 'border-secondary bg-secondary' : 'border-outline'
+                            }`}
+                          />
+                          <span className="font-label-md text-label-md uppercase tracking-wider text-on-surface">
+                            Buy {offer.quantity}
+                          </span>
+                        </span>
+                        <span className="flex items-baseline gap-2">
+                          {save > 0 && (
+                            <span className="font-label-sm text-label-sm bg-secondary text-white px-2 py-0.5">
+                              Save {formatCurrency(save)}
+                            </span>
+                          )}
+                          <span className="font-bold text-on-surface">{formatCurrency(offer.price)}</span>
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
 
             {orderedProperties.length > 0 && (
               <div className="mb-6">
@@ -472,7 +542,7 @@ export default function ProductDetailContent({
           disabled={!inStock}
           className="flex-1 bg-primary text-white font-label-md text-label-md uppercase tracking-widest py-3 hover:bg-secondary active:scale-95 transition-all disabled:opacity-50"
         >
-          Add To Loadout — {formatCurrency(currentPrice)}
+          Add To Loadout — {formatCurrency(selectedOffer ? selectedOffer.price : currentPrice)}
         </button>
       </div>
     </>

@@ -24,8 +24,6 @@ export interface Product {
   active: boolean
   photo_url: string | null
   thumbnail_url: string | null
-  category_id: string | null
-  brand_id: string | null
   color_type: string | null
   property_type: string | null
   created_at: string
@@ -36,8 +34,24 @@ export interface ProductDetail extends Product {
   variants: Variant[]
   colors: Color[]
   properties: Property[]
-  category: Category | null
+  // The product's categories on the resolved website (many); brand is single.
+  categories: Category[]
   brand: Brand | null
+  // Quantity offers ("buy N of a variant for ৳X"); empty when the website hasn't opted in.
+  offers: Offer[]
+}
+
+// A "buy N for ৳X" quantity offer tied to a single variant. Order it by sending
+// `id` as `quantity_tier_id` in order_items.
+export interface Offer {
+  id: string
+  variant_id: string
+  variant_name: string
+  // Pieces per multiplier — one offer unit ships this many of the variant.
+  quantity: number
+  // Offer price for the whole tier (not per piece).
+  price: number
+  original_price: number | null
 }
 
 export interface Variant {
@@ -160,6 +174,7 @@ export interface Location {
   fee?: number | null
 }
 
+// A component of a combo — a variant and how many of it the combo ships.
 export interface BundleItem {
   variant_id: string
   product_id: string
@@ -170,15 +185,28 @@ export interface BundleItem {
   preorder: boolean
 }
 
-export interface Bundle {
+// One selectable combo of a parent bundle. Order it by sending `id` as
+// `bundle_variant_id` in order_items.
+export interface BundleCombo {
   id: string
   name: string
   price: number
   original_price: number | null
   image_url: string
+  // Max of this combo shippable today (min across components).
   available_stock: number
+  // True if in stock or all short components are preorder-eligible.
   orderable: boolean
   items: BundleItem[]
+}
+
+// A parent bundle (mirrors Product → Variant). Price/stock/orderability live on
+// each combo, not the parent.
+export interface Bundle {
+  id: string
+  name: string
+  image_url: string
+  variants: BundleCombo[]
 }
 
 // Attribution data injected by the storefront on order creation / cart capture.

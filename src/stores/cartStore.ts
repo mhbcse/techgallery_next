@@ -3,10 +3,13 @@ import { persist } from 'zustand/middleware'
 
 export interface CartItem {
   productId: string
-  // Unique line key. For bundle lines this is a synthetic `bundle-<id>` value.
+  // Unique line key. For bundle lines this is a synthetic `bundle-<comboId>` value,
+  // for offer lines `offer-<offerId>`.
   variantId: string
-  // Set on bundle lines; the order is placed with this bundle_id instead of variant_id.
-  bundleId?: string
+  // Set on bundle combo lines; the order is placed with bundle_variant_id.
+  bundleVariantId?: string
+  // Set on quantity-offer lines; the order is placed with quantity_tier_id.
+  quantityTierId?: string
   name: string
   variantName: string
   price: number
@@ -66,6 +69,6 @@ export const useCartStore = create<CartState>()(
 
       subtotal: () => get().items.reduce((sum, i) => sum + i.price * i.quantity, 0),
     }),
-    { name: 'cart-storage', skipHydration: true }
+    { name: 'cart-storage-v2', skipHydration: true }
   )
 )

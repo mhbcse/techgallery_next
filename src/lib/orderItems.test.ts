@@ -19,20 +19,28 @@ describe('toOrderItems', () => {
     ])
   })
 
-  it('maps a bundle line to { bundle_id, quantity }', () => {
+  it('maps a bundle combo line to { bundle_variant_id, quantity }', () => {
     expect(
-      toOrderItems([{ ...base, variantId: 'bundle-5', bundleId: '5', quantity: 1 }])
-    ).toEqual([{ bundle_id: 5, quantity: 1 }])
+      toOrderItems([{ ...base, variantId: 'bundle-5', bundleVariantId: '5', quantity: 1 }])
+    ).toEqual([{ bundle_variant_id: 5, quantity: 1 }])
+  })
+
+  it('maps a quantity-offer line to { quantity_tier_id, quantity }', () => {
+    expect(
+      toOrderItems([{ ...base, variantId: 'offer-7', quantityTierId: '7', quantity: 2 }])
+    ).toEqual([{ quantity_tier_id: 7, quantity: 2 }])
   })
 
   it('maps a mixed cart preserving order and casting ids to numbers', () => {
     const result = toOrderItems([
       { ...base, variantId: '10', quantity: 2 },
-      { ...base, variantId: 'bundle-5', bundleId: '5', quantity: 1 },
+      { ...base, variantId: 'bundle-5', bundleVariantId: '5', quantity: 1 },
+      { ...base, variantId: 'offer-7', quantityTierId: '7', quantity: 3 },
     ])
     expect(result).toEqual([
       { variant_id: 10, quantity: 2 },
-      { bundle_id: 5, quantity: 1 },
+      { bundle_variant_id: 5, quantity: 1 },
+      { quantity_tier_id: 7, quantity: 3 },
     ])
   })
 

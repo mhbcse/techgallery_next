@@ -51,10 +51,11 @@ export default async function ProductDetailPage({
     )
     product = productRes.data
 
-    // Fetch related products from the same category
-    if (product.category_id) {
+    // Fetch related products from the product's first category
+    const relatedCategoryId = product.categories[0]?.id
+    if (relatedCategoryId) {
       const relatedRes = await serverFetch<PaginatedResponse<Product>>(
-        `/api/v1/products?category_id=${product.category_id}&per_page=4`,
+        `/api/v1/products?category_id=${relatedCategoryId}&per_page=4`,
         { revalidate: 120 }
       )
       relatedProducts = relatedRes.data.filter((p) => p.id !== product!.id)
