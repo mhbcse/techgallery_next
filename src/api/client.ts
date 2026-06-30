@@ -1,5 +1,32 @@
 import axios from 'axios'
 import { API_BASE_URL } from '@/lib/constants'
+import { useAuthStore } from '@/stores/authStore'
+
+// Read the access token from the in-memory store first (set synchronously on
+// login/register), falling back to persisted storage. Reading only localStorage
+// raced the persist write right after login — getMe() went out tokenless, 401'd,
+// and the refresh path hard-redirected to /login.
+function getAccessToken(): string | null {
+  const fromStore = useAuthStore.getState().accessToken
+  if (fromStore) return fromStore
+  if (typeof window === 'undefined') return null
+  try {
+    return JSON.parse(localStorage.getItem('auth-storage') || '{}')?.state?.accessToken ?? null
+  } catch {
+    return null
+  }
+}
+
+function getRefreshToken(): string | null {
+  const fromStore = useAuthStore.getState().refreshToken
+  if (fromStore) return fromStore
+  if (typeof window === 'undefined') return null
+  try {
+    return JSON.parse(localStorage.getItem('auth-storage') || '{}')?.state?.refreshToken ?? null
+  } catch {
+    return null
+  }
+}
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -19,16 +46,9 @@ const processQueue = (error: unknown, token: string | null = null) => {
 
 // Request interceptor: attach access token
 apiClient.interceptors.request.use((config) => {
-  if (typeof window === 'undefined') return config
-  const authData = localStorage.getItem('auth-storage')
-  if (authData) {
-    try {
-      const parsed = JSON.parse(authData)
-      const token = parsed?.state?.accessToken
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`
-      }
-    } catch {}
+  const token = getAccessToken()
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
   }
   return config
 })
@@ -39,7 +59,14 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // A 401 from the auth endpoints themselves is a credential error (e.g. wrong
+    // password) — not an expired session. Let it propagate to the caller so the
+    // page can show an error, instead of triggering the refresh-and-redirect path.
+    const url: string = originalRequest?.url || ''
+    const isAuthEndpoint =
+      url.includes('/auth/login') || url.includes('/auth/register') || url.includes('/auth/refresh')
+
+    if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({
@@ -56,11 +83,7 @@ apiClient.interceptors.response.use(
       isRefreshing = true
 
       try {
-        if (typeof window === 'undefined') throw new Error('No window')
-        const authData = localStorage.getItem('auth-storage')
-        if (!authData) throw new Error('No auth data')
-        const parsed = JSON.parse(authData)
-        const refreshToken = parsed?.state?.refreshToken
+        const refreshToken = getRefreshToken()
         if (!refreshToken) throw new Error('No refresh token')
 
         const { data } = await axios.post(`${API_BASE_URL}/api/v1/auth/refresh`, {
@@ -70,10 +93,8 @@ apiClient.interceptors.response.use(
         const newAccessToken = data.access_token
         const newRefreshToken = data.refresh_token
 
-        // Update localStorage
-        parsed.state.accessToken = newAccessToken
-        parsed.state.refreshToken = newRefreshToken
-        localStorage.setItem('auth-storage', JSON.stringify(parsed))
+        // Keep the in-memory store and persisted storage in sync.
+        useAuthStore.getState().setTokens(newAccessToken, newRefreshToken)
 
         processQueue(null, newAccessToken)
 

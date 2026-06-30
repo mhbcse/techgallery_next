@@ -26,7 +26,7 @@ export default function CartPage() {
   useTitle('Checkout - Tech Gallery')
   const router = useRouter()
   const { items, removeItem, updateQuantity, clearCart, totalItems, subtotal } = useCartStore()
-  const { user } = useAuthStore()
+  const { user, register: registerUser } = useAuthStore()
 
   const [promoCode, setPromoCode] = useState('')
   const [placing, setPlacing] = useState(false)
@@ -115,11 +115,33 @@ export default function CartPage() {
 
     setPlacing(true)
     try {
+      // Optional account creation. Must happen BEFORE the order: placing an order
+      // auto-creates a customer keyed on phone, so a later register would collide.
+      // Registering first logs the shopper in, and the order then links to that account.
+      let createdAccount = false
+      if (!user && data.customer_password) {
+        try {
+          await registerUser({
+            name: data.customer_name,
+            phone: data.customer_phone,
+            email: data.customer_email!, // guaranteed present by the schema refine
+            password: data.customer_password,
+            address: data.customer_address,
+          })
+          createdAccount = true
+        } catch (err: unknown) {
+          // Don't block checkout — place the order as a guest and nudge to log in.
+          const body = (err as { response?: { data?: { messages?: string[]; message?: string } } }).response?.data
+          toast(body?.messages?.[0] || 'Could not create an account; placing your order as a guest.', { icon: 'ℹ️' })
+        }
+      }
+
       await createOrder({
         order: {
           customer_name: data.customer_name,
           customer_phone: data.customer_phone,
           customer_address: data.customer_address,
+          customer_email: data.customer_email || undefined,
           customer_district: selectedDistrict?.name,
           customer_area: selectedArea?.name,
         },
@@ -131,7 +153,7 @@ export default function CartPage() {
       clearCart()
       toast.success('Order placed! We’ll confirm it with you shortly.')
 
-      if (user) router.push('/account/orders')
+      if (user || createdAccount) router.push('/account/orders')
       else router.push('/')
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to place order. Please try again.'
@@ -303,6 +325,34 @@ export default function CartPage() {
                       />
                       {errors.customer_address && <p className="mt-1 text-xs text-red-500">{errors.customer_address.message}</p>}
                     </div>
+                    {!user && (
+                      <>
+                        <div>
+                          <input
+                            type="email"
+                            placeholder="Email (optional)"
+                            className={`${inputClass} ${errors.customer_email ? 'ring-1 ring-red-400' : ''}`}
+                            {...register('customer_email')}
+                          />
+                          {errors.customer_email && <p className="mt-1 text-xs text-red-500">{errors.customer_email.message}</p>}
+                        </div>
+                        <div>
+                          <input
+                            type="password"
+                            placeholder="Create a password (optional)"
+                            className={`${inputClass} ${errors.customer_password ? 'ring-1 ring-red-400' : ''}`}
+                            {...register('customer_password')}
+                          />
+                          {errors.customer_password ? (
+                            <p className="mt-1 text-xs text-red-500">{errors.customer_password.message}</p>
+                          ) : (
+                            <p className="mt-1 text-xs text-on-surface-variant">
+                              Set a password to track your orders faster next time (needs an email).
+                            </p>
+                          )}
+                        </div>
+                      </>
+                    )}
                     <div className="grid grid-cols-2 gap-3">
                       <select
                         value={districtId}

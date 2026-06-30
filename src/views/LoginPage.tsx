@@ -21,6 +21,7 @@ export default function LoginPage() {
 
   const [activeTab, setActiveTab] = useState<Tab>('password')
   const [showPassword, setShowPassword] = useState(false)
+  const [loginError, setLoginError] = useState<string | null>(null)
   const [otpSent, setOtpSent] = useState(false)
   const [otpTimer, setOtpTimer] = useState(59)
   const [otp, setOtp] = useState<string[]>(['', '', '', '', '', ''])
@@ -49,13 +50,15 @@ export default function LoginPage() {
   }, [otpSent, otpTimer])
 
   const onPasswordSubmit = async (data: LoginFormData) => {
+    setLoginError(null)
     try {
       await login(data.email, data.password)
       toast.success('Welcome back!')
       const from = searchParams?.get('from') || '/account'
       router.push(from)
-    } catch {
-      toast.error('Invalid email or password')
+    } catch (err) {
+      const apiMsg = (err as { response?: { data?: { message?: string } } }).response?.data?.message
+      setLoginError(apiMsg || 'Invalid email/phone or password')
     }
   }
 
@@ -146,6 +149,12 @@ export default function LoginPage() {
           {activeTab === 'password' && (
             <>
               <form onSubmit={handleSubmit(onPasswordSubmit)} className="space-y-5">
+                {loginError && (
+                  <div className="flex items-start gap-2 border border-red-300 bg-red-50 text-red-700 px-3 py-2.5 text-body-sm" role="alert">
+                    <span className="material-symbols-outlined text-lg">error</span>
+                    <span>{loginError}</span>
+                  </div>
+                )}
                 {/* Email or Phone */}
                 <div>
                   <label className="block text-label-sm uppercase tracking-wider text-on-surface-variant mb-1.5">
