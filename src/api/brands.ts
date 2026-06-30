@@ -1,5 +1,5 @@
 import apiClient from './client'
-import type { Brand, Product, CollectionResponse, PaginatedResponse } from './types'
+import type { Brand, Product, CollectionResponse, PaginatedResponse, SingleResponse } from './types'
 
 export async function listBrands(params?: {
   search?: string
@@ -8,6 +8,12 @@ export async function listBrands(params?: {
 }): Promise<PaginatedResponse<Brand>> {
   const res = await apiClient.get<PaginatedResponse<Brand>>('/api/v1/brands', { params })
   return res.data
+}
+
+// Brand details (by slug).
+export async function getBrand(slug: string): Promise<Brand> {
+  const res = await apiClient.get<SingleResponse<Brand>>(`/api/v1/brands/${slug}`)
+  return res.data.data
 }
 
 // Paginated products for a brand (by slug), plus the resolved brand for the heading.

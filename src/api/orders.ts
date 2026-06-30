@@ -16,6 +16,13 @@ export type OrderItemInput =
   | { bundle_variant_id: number; quantity: number }
   | { quantity_tier_id: number; quantity: number }
 
+// Website orders are queued for async processing by Rails, so creation returns an
+// acknowledgement (not the finished order). Totals are computed server-side after.
+export interface OrderSubmission {
+  submission_id: string
+  status: string
+}
+
 export async function createOrder(data: {
   order?: {
     customer_name?: string
@@ -35,8 +42,8 @@ export async function createOrder(data: {
   // Only needed when the API has RECAPTCHA_SECRET_KEY configured.
   recaptcha_token?: string
   tracking?: OrderTracking
-}): Promise<Order> {
-  const res = await apiClient.post<SingleResponse<Order>>('/api/v1/orders', data)
+}): Promise<OrderSubmission> {
+  const res = await apiClient.post<SingleResponse<OrderSubmission>>('/api/v1/orders', data)
   return res.data.data
 }
 

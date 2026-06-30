@@ -9,43 +9,23 @@ import { useCartUIStore } from '@/stores/cartUIStore'
 import { useWishlistStore } from '@/stores/wishlistStore'
 import { formatCurrency } from '@/lib/formatCurrency'
 import QuantitySelector from '@/components/product/QuantitySelector'
-import StarRating from '@/components/ui/StarRating'
 import ProductCard from '@/components/product/ProductCard'
 import Breadcrumb from '@/components/common/Breadcrumb'
 
-type Tab = 'description' | 'specs' | 'reviews'
+type Tab = 'description' | 'specs'
 
-const sampleReviews = [
-  {
-    id: 1,
-    name: 'Arif H.',
-    date: 'January 15, 2025',
-    rating: 5,
-    comment: 'Insane polling rate and zero perceptible latency. Build quality is monolithic — feels engineered, not assembled.',
-  },
-  {
-    id: 2,
-    name: 'Tanvir R.',
-    date: 'December 28, 2024',
-    rating: 4,
-    comment: 'Great hardware, fast dispatch. Software could use more profiles, but the raw performance is elite.',
-  },
-  {
-    id: 3,
-    name: 'Sadia K.',
-    date: 'December 10, 2024',
-    rating: 5,
-    comment: 'Survived a full season of competitive play. Stress-tested and validated — exactly as advertised.',
-  },
-]
-
-const ratingBreakdown = [
-  { stars: 5, percentage: 72 },
-  { stars: 4, percentage: 18 },
-  { stars: 3, percentage: 6 },
-  { stars: 2, percentage: 3 },
-  { stars: 1, percentage: 1 },
-]
+// Shared styling for admin-authored rich-text (description + specs). Tailwind preflight
+// strips default list/heading styles, so we restyle the editor's tag set explicitly.
+// Editor tag set: strong, em, del, a, h1, blockquote, pre, ul, ol, li, div, br.
+const richTextClass = [
+  'max-w-none font-body-md text-body-md text-on-surface-variant leading-relaxed',
+  '[&_h1]:text-xl [&_h1]:font-bold [&_h1]:text-on-surface [&_h1]:mt-4 [&_h1]:mb-2',
+  '[&_ul]:list-disc [&_ul]:pl-6 [&_ul]:my-2 [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:my-2 [&_li]:mb-1',
+  '[&_a]:text-secondary [&_a]:underline',
+  '[&_blockquote]:border-l-2 [&_blockquote]:border-outline-variant [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:my-2',
+  '[&_pre]:bg-surface-container [&_pre]:p-3 [&_pre]:font-mono [&_pre]:text-sm [&_pre]:overflow-x-auto [&_pre]:my-2',
+  '[&_p]:my-2 [&_del]:line-through',
+].join(' ')
 
 // Order a list of {id} entities by the first time each id is referenced across the
 // position-sorted variants; fall back to the original list when nothing matches.
@@ -91,11 +71,9 @@ export default function ProductDetailContent({
   const { addItem: addToWishlist, removeItem: removeFromWishlist, isInWishlist } = useWishlistStore()
   const inWishlist = isInWishlist(product.id)
 
-  // Variants carry a `position` that defines the intended display order; the API does not
-  // guarantee it returns them sorted. Sort once and drive thumbnails + option pickers from it.
-  const orderedVariants = [...product.variants].sort(
-    (a, b) => (a.position ?? Infinity) - (b.position ?? Infinity)
-  )
+  // The API returns variants already in display order (sorted server-side by position);
+  // use that order as-is to drive thumbnails + option pickers.
+  const orderedVariants = product.variants
 
   // The properties/colors arrays carry no ordering field, so derive their order from the
   // position-sorted variants (first appearance wins), falling back to the raw arrays.
@@ -126,11 +104,17 @@ export default function ProductDetailContent({
     setSelectedOfferId(null)
   }, [selectedPropertyId, selectedColorId, product])
 
+  // Thumbnail strip: cover photo, then the product's gallery images (position-ordered),
+  // then any variant-specific images — deduped, skipping blanks.
   const thumbnails: string[] = []
-  orderedVariants.forEach((v) => {
-    if (v.image_url && !thumbnails.includes(v.image_url)) thumbnails.push(v.image_url)
-  })
-  if (thumbnails.length === 0 && product.photo_url) thumbnails.push(product.photo_url)
+  const pushThumb = (url: string | null | undefined) => {
+    if (url && !thumbnails.includes(url)) thumbnails.push(url)
+  }
+  pushThumb(product.photo_url)
+  ;[...product.images]
+    .sort((a, b) => a.position - b.position)
+    .forEach((img) => pushThumb(img.image_url))
+  orderedVariants.forEach((v) => pushThumb(v.image_url))
 
   const currentPrice = selectedVariant?.price ?? product.price_min
   const stockCount = selectedVariant?.available_stock ?? 0
@@ -232,18 +216,6 @@ export default function ProductDetailContent({
 
           {/* Info */}
           <div className="lg:col-span-5">
-            <div className="mb-3">
-              {inStock ? (
-                <span className="inline-flex items-center gap-1 font-label-sm text-label-sm uppercase tracking-widest px-3 py-1 bg-secondary/10 text-secondary">
-                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" /> In Stock · {stockCount} units
-                </span>
-              ) : (
-                <span className="inline-flex items-center font-label-sm text-label-sm uppercase tracking-widest px-3 py-1 bg-red-100 text-red-700">
-                  Out of Stock
-                </span>
-              )}
-            </div>
-
             <h1 className="font-headline-lg text-headline-lg font-black text-on-surface leading-tight mb-3 uppercase">
               {product.name}
             </h1>
@@ -284,12 +256,11 @@ export default function ProductDetailContent({
               </div>
             )}
 
-            <div className="flex items-center gap-2 mb-4 font-body-sm text-body-sm text-on-surface-variant">
-              <StarRating rating={4} size="sm" />
-              <span>(42 Reviews)</span>
-              <span className="text-outline-variant">|</span>
-              <span className="font-mono">SKU: {selectedVariant?.sku || 'N/A'}</span>
-            </div>
+            {product.summary && (
+              <p className="mb-4 font-body-md text-body-md text-on-surface-variant leading-relaxed">
+                {product.summary}
+              </p>
+            )}
 
             <div className="bg-primary-container p-5 border-l-4 border-secondary mb-6">
               <div className="flex items-center gap-3 flex-wrap">
@@ -306,6 +277,18 @@ export default function ProductDetailContent({
                 )}
               </div>
               <p className="font-label-sm text-label-sm text-on-primary-container mt-1 uppercase tracking-widest">VAT included</p>
+            </div>
+
+            <div className="mb-6">
+              {inStock ? (
+                <span className="inline-flex items-center gap-1 font-label-sm text-label-sm uppercase tracking-widest px-3 py-1 bg-secondary/10 text-secondary">
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" /> In Stock
+                </span>
+              ) : (
+                <span className="inline-flex items-center font-label-sm text-label-sm uppercase tracking-widest px-3 py-1 bg-red-100 text-red-700">
+                  Out of Stock
+                </span>
+              )}
             </div>
 
             {variantOffers.length > 0 && (
@@ -428,7 +411,9 @@ export default function ProductDetailContent({
                 <span className="material-symbols-outlined text-secondary text-xl">verified_user</span>
                 <div>
                   <p className="font-label-md text-label-md font-bold uppercase">Warranty</p>
-                  <p className="font-label-sm text-label-sm text-outline uppercase tracking-widest">Lifetime Tech</p>
+                  <p className="font-label-sm text-label-sm text-outline uppercase tracking-widest">
+                    {product.warranty_days ? `${product.warranty_days} Days` : 'Not Covered'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -441,7 +426,6 @@ export default function ProductDetailContent({
             {([
               { key: 'description' as Tab, label: 'Description' },
               { key: 'specs' as Tab, label: 'Specifications' },
-              { key: 'reviews' as Tab, label: 'Reviews' },
             ]).map((tab) => (
               <button
                 key={tab.key}
@@ -455,64 +439,18 @@ export default function ProductDetailContent({
             ))}
           </div>
           <div className="py-6">
-            {activeTab === 'description' && (
-              <div className="max-w-none text-on-surface-variant font-body-md text-body-md leading-relaxed">
-                {product.description ? <p>{product.description}</p> : <p className="text-outline italic">No description available for this unit.</p>}
-              </div>
-            )}
-            {activeTab === 'specs' && (
-              <table className="w-full max-w-lg border-collapse border border-outline-variant font-body-sm text-body-sm">
-                <tbody>
-                  <tr><td className="border border-outline-variant px-4 py-2 font-bold uppercase font-label-md text-label-md">SKU</td><td className="border border-outline-variant px-4 py-2">{selectedVariant?.sku || 'N/A'}</td></tr>
-                  <tr><td className="border border-outline-variant px-4 py-2 font-bold uppercase font-label-md text-label-md">Configuration</td><td className="border border-outline-variant px-4 py-2">{product.property_type || 'Standard'}</td></tr>
-                  <tr><td className="border border-outline-variant px-4 py-2 font-bold uppercase font-label-md text-label-md">Finish</td><td className="border border-outline-variant px-4 py-2">{product.color_type || 'Standard'}</td></tr>
-                  <tr><td className="border border-outline-variant px-4 py-2 font-bold uppercase font-label-md text-label-md">Available Stock</td><td className="border border-outline-variant px-4 py-2">{stockCount} units</td></tr>
-                </tbody>
-              </table>
-            )}
-            {activeTab === 'reviews' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  <div className="flex flex-col items-center justify-center p-6 bg-surface-container border border-outline-variant">
-                    <span className="font-display-lg text-5xl font-bold text-on-surface">4.8</span>
-                    <span className="font-label-sm text-label-sm text-outline uppercase tracking-widest mt-1">out of 5</span>
-                    <div className="mt-2"><StarRating rating={4.8} size="md" /></div>
-                    <span className="font-label-sm text-label-sm text-outline mt-2">Based on 128 reviews</span>
-                  </div>
-                  <div className="lg:col-span-2 space-y-2">
-                    {ratingBreakdown.map((item) => (
-                      <div key={item.stars} className="flex items-center gap-3">
-                        <span className="font-label-md text-label-md text-on-surface-variant w-12">{item.stars} star</span>
-                        <div className="flex-1 h-2 bg-surface-container overflow-hidden">
-                          <div className="h-full bg-secondary" style={{ width: `${item.percentage}%` }} />
-                        </div>
-                        <span className="font-label-md text-label-md text-outline w-10 text-right">{item.percentage}%</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                {sampleReviews.map((review) => (
-                  <div key={review.id} className="border border-outline-variant p-5">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-secondary/10 flex items-center justify-center">
-                          <span className="font-label-md text-label-md font-bold text-secondary">{review.name.charAt(0)}</span>
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <p className="font-label-md text-label-md font-bold text-on-surface">{review.name}</p>
-                            <span className="font-label-sm text-label-sm bg-secondary/10 text-secondary px-2 py-0.5 uppercase">Verified</span>
-                          </div>
-                          <p className="font-label-sm text-label-sm text-outline">{review.date}</p>
-                        </div>
-                      </div>
-                      <StarRating rating={review.rating} size="sm" />
-                    </div>
-                    <p className="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">{review.comment}</p>
-                  </div>
-                ))}
-              </div>
-            )}
+            {activeTab === 'description' &&
+              (product.description ? (
+                <div className={richTextClass} dangerouslySetInnerHTML={{ __html: product.description }} />
+              ) : (
+                <p className="text-outline italic">No description available for this unit.</p>
+              ))}
+            {activeTab === 'specs' &&
+              (product.specs ? (
+                <div className={richTextClass} dangerouslySetInnerHTML={{ __html: product.specs }} />
+              ) : (
+                <p className="text-outline italic">No specifications available for this unit.</p>
+              ))}
           </div>
         </div>
 

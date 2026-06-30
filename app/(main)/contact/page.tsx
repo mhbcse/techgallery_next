@@ -17,7 +17,7 @@ const channels: { icon: string; label: string; lines: string[]; href?: string }[
 ]
 
 const ADDRESS = 'House 2 (4C), Road 13, Block C, Banasree, Rampura, Dhaka'
-const MAP_QUERY = encodeURIComponent('Banasree, Rampura, Dhaka')
+const MAP_QUERY = encodeURIComponent('Tech Gallery, Banasree, Rampura, Dhaka')
 
 export default function ContactPage() {
   return (
@@ -96,15 +96,17 @@ export default function ContactPage() {
               Connect
             </h3>
             <div className="flex gap-4">
-              {['public', 'forum', 'support_agent'].map((icon) => (
-                <a
-                  key={icon}
-                  href="#"
-                  className="w-10 h-10 border border-outline-variant flex items-center justify-center text-on-surface-variant hover:border-secondary hover:text-secondary transition-all"
-                >
-                  <span className="material-symbols-outlined">{icon}</span>
-                </a>
-              ))}
+              <a
+                href="https://www.facebook.com/techgallery.store"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Tech Gallery on Facebook"
+                className="w-10 h-10 border border-outline-variant flex items-center justify-center text-on-surface-variant hover:border-secondary hover:text-secondary transition-all"
+              >
+                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor" aria-hidden="true">
+                  <path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07c0 6.02 4.39 11.01 10.13 11.93v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.97h-1.51c-1.49 0-1.95.93-1.95 1.88v2.26h3.32l-.53 3.49h-2.79V24C19.61 23.08 24 18.09 24 12.07z" />
+                </svg>
+              </a>
             </div>
           </div>
         </div>

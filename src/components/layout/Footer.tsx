@@ -3,8 +3,6 @@ import Link from 'next/link'
 const protocols = [
   { label: 'Contact Us', href: '/contact' },
   { label: 'Technical Support', href: '/contact' },
-  { label: 'Track Order', href: '/track-order' },
-  { label: 'Warranty Policy', href: '#' },
 ]
 
 export default function Footer() {
@@ -63,18 +61,13 @@ export default function Footer() {
             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
             <span className="font-label-sm text-label-sm text-on-surface">ALL SYSTEMS NOMINAL</span>
           </div>
-          <div className="flex gap-4 mt-2">
-            <a className="text-on-surface-variant hover:text-secondary" href="#"><span className="material-symbols-outlined">language</span></a>
-            <a className="text-on-surface-variant hover:text-secondary" href="#"><span className="material-symbols-outlined">hub</span></a>
-            <a className="text-on-surface-variant hover:text-secondary" href="#"><span className="material-symbols-outlined">terminal</span></a>
-          </div>
         </div>
       </div>
 
       {/* Bottom bar */}
       <div className="border-t border-outline/10 py-6 px-margin-lg max-w-container-max mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
         <span className="font-body-sm text-body-sm text-on-surface-variant">
-          © 2024 Tech Gallery. All Rights Reserved. Engineered for Performance.
+          © 2026 Tech Gallery. All Rights Reserved. Engineered for Performance.
         </span>
         <div className="flex gap-6">
           <span className="text-[10px] font-label-sm text-outline">SECURE · 256-BIT ENCRYPTED</span>

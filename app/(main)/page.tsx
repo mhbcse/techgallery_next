@@ -20,8 +20,8 @@ const specs = [
   },
   {
     label: 'Support Protocol',
-    title: 'LIFETIME TECH',
-    body: 'Hardware guaranteed against manufacturing defects for the life of the product.',
+    title: 'BRAND WARRANTY',
+    body: 'Authentic products backed by the manufacturer\'s warranty where applicable.',
   },
   {
     label: 'Encryption',

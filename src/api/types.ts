@@ -19,13 +19,21 @@ export interface Product {
   name: string
   slug: string | null
   description: string | null
+  // Short plain-text summary shown on the product detail page.
+  summary: string | null
+  // Rich text / HTML specifications (admin-authored, trusted).
+  specs: string | null
   price_min: number | null
   price_max: number | null
   active: boolean
   photo_url: string | null
   thumbnail_url: string | null
+  // Full CDN URL for the product video; empty string when none.
+  video_url: string | null
   color_type: string | null
   property_type: string | null
+  // Warranty length in days; null when none is set.
+  warranty_days: number | null
   created_at: string
   updated_at: string
 }
@@ -34,11 +42,21 @@ export interface ProductDetail extends Product {
   variants: Variant[]
   colors: Color[]
   properties: Property[]
+  // The product's gallery images, ordered by position.
+  images: ProductImage[]
   // The product's categories on the resolved website (many); brand is single.
   categories: Category[]
   brand: Brand | null
   // Quantity offers ("buy N of a variant for ৳X"); empty when the website hasn't opted in.
   offers: Offer[]
+}
+
+// A gallery image attached to a product (separate from variant images).
+export interface ProductImage {
+  id: string
+  position: number
+  image_url: string
+  thumbnail_url: string
 }
 
 // A "buy N for ৳X" quantity offer tied to a single variant. Order it by sending

@@ -1,22 +1,25 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useCartStore } from '@/stores/cartStore'
 import { useAuthStore } from '@/stores/authStore'
 
 const navLinks = [
   { label: 'Shop', href: '/shop' },
-  { label: 'Keyboards', href: '/shop?search=keyboard' },
-  { label: 'Mice', href: '/shop?search=mouse' },
-  { label: 'Audio', href: '/shop?search=headset' },
+  { label: 'Keyboards', href: '/categories/keyboard' },
+  { label: 'Mice', href: '/categories/mouse' },
+  { label: 'Mouse Pad', href: '/categories/mouse-pad' },
+  { label: 'Bag', href: '/categories/bag' },
+  { label: 'Accessories', href: '/categories/accessories' },
 ]
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const router = useRouter()
+  const pathname = usePathname()
   const totalItems = useCartStore((s) => s.totalItems())
   const user = useAuthStore((s) => s.user)
 
@@ -48,12 +51,12 @@ export default function Navbar() {
           </Link>
 
           <div className="hidden md:flex gap-6">
-            {navLinks.map((link, i) => (
+            {navLinks.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
                 className={`font-label-md text-label-md uppercase tracking-wider pb-1 transition-colors ${
-                  i === 0
+                  pathname === link.href
                     ? 'text-secondary border-b-2 border-secondary'
                     : 'text-on-surface-variant hover:text-secondary'
                 }`}

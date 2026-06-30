@@ -115,7 +115,7 @@ export default function CartPage() {
 
     setPlacing(true)
     try {
-      const order = await createOrder({
+      await createOrder({
         order: {
           customer_name: data.customer_name,
           customer_phone: data.customer_phone,
@@ -129,7 +129,7 @@ export default function CartPage() {
       })
 
       clearCart()
-      toast.success(`Order placed! Total ${formatCurrency(order.grand_total)}`)
+      toast.success('Order placed! We’ll confirm it with you shortly.')
 
       if (user) router.push('/account/orders')
       else router.push('/')
@@ -388,10 +388,9 @@ export default function CartPage() {
 
       {/* Trust badges */}
       <div className="border-t border-outline-variant py-8 mt-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {[
             { icon: 'bolt', title: '24H Dispatch', body: 'Prioritized nationwide deployment.' },
-            { icon: 'verified_user', title: 'Lifetime Warranty', body: 'Guaranteed against manufacturing defects.' },
             { icon: 'lock', title: 'Secure Checkout', body: '256-bit encrypted transactions.' },
           ].map((b) => (
             <div key={b.title} className="flex items-center gap-4">
