@@ -12,6 +12,10 @@ import { loginSchema, type LoginFormData } from '@/lib/validators'
 
 type Tab = 'password' | 'otp'
 
+// OTP login is not implemented yet — hidden until the backend is ready.
+// Flip to true to re-enable the OTP tab and the password-tab quick-access block.
+const OTP_ENABLED = false
+
 export default function LoginPage() {
   useTitle('Login - Tech Gallery')
 
@@ -99,6 +103,7 @@ export default function LoginPage() {
       {/* Card */}
       <div className="bg-surface-container-lowest border border-outline-variant overflow-hidden">
         {/* Tabs */}
+        {OTP_ENABLED && (
         <div className="flex border-b border-outline-variant bg-surface-container-low">
           <button
             type="button"
@@ -129,6 +134,7 @@ export default function LoginPage() {
             </span>
           </button>
         </div>
+        )}
 
         {/* Form Content */}
         <div className="p-8">
@@ -215,6 +221,8 @@ export default function LoginPage() {
                 </button>
               </form>
 
+              {OTP_ENABLED && (
+              <>
               {/* OTP Quick Access Divider */}
               <div className="my-8 flex items-center text-outline-variant">
                 <div className="flex-grow border-t border-outline-variant" />
@@ -288,11 +296,13 @@ export default function LoginPage() {
                   </p>
                 </div>
               </div>
+              </>
+              )}
             </>
           )}
 
           {/* OTP Tab (focused OTP view) */}
-          {activeTab === 'otp' && (
+          {OTP_ENABLED && activeTab === 'otp' && (
             <div className="space-y-5">
               <div>
                 <label className="block text-label-sm uppercase tracking-wider text-on-surface-variant mb-1.5">Phone Number</label>
@@ -393,7 +403,7 @@ export default function LoginPage() {
           Help Center
         </Link>
         <span className="hidden sm:block w-1.5 h-1.5 bg-outline-variant" />
-        <Link href="#" className="text-body-sm font-medium text-on-surface-variant hover:text-secondary transition-colors">
+        <Link href="/privacy" className="text-body-sm font-medium text-on-surface-variant hover:text-secondary transition-colors">
           Privacy Policy
         </Link>
       </div>

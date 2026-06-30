@@ -3,6 +3,8 @@ import Link from 'next/link'
 const protocols = [
   { label: 'Contact Us', href: '/contact' },
   { label: 'Technical Support', href: '/contact' },
+  { label: 'Privacy Policy', href: '/privacy' },
+  { label: 'Terms of Service', href: '/terms' },
 ]
 
 export default function Footer() {

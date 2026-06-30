@@ -67,16 +67,15 @@ export default async function HomePage() {
               </span>
             </div>
             <h1 className="font-display-lg text-display-lg text-white leading-none mb-6">
-              AERO-GLIDE <br />
-              <span className="text-secondary italic">PRO SERIES</span>
+              {feature?.name ?? 'Performance Peripherals'}
             </h1>
             <p className="font-body-md text-body-md text-outline-variant max-w-md mb-8">
-              Engineered for zero-latency execution. High-performance peripherals built with monolithic
-              precision for high-stakes competition environments.
+              {feature?.summary ||
+                'Engineered for zero-latency execution. High-performance peripherals built for high-stakes competition.'}
             </p>
             <div className="flex flex-wrap gap-4">
               <Link
-                href="/shop"
+                href={feature?.slug ? `/products/${feature.slug}` : '/shop'}
                 className="bg-secondary text-white font-label-md text-label-md px-8 py-4 uppercase tracking-widest hover:brightness-110 active:translate-y-1 transition-all border border-secondary"
               >
                 Initialize Purchase

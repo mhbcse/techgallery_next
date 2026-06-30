@@ -227,11 +227,11 @@ export default function RegisterPage() {
               </div>
               <label className="text-body-sm text-on-surface-variant leading-tight">
                 I agree to the{' '}
-                <Link href="#" className="text-secondary hover:underline font-medium">
+                <Link href="/terms" className="text-secondary hover:underline font-medium">
                   Terms of Service
                 </Link>{' '}
                 and{' '}
-                <Link href="#" className="text-secondary hover:underline font-medium">
+                <Link href="/privacy" className="text-secondary hover:underline font-medium">
                   Privacy Policy
                 </Link>
               </label>
