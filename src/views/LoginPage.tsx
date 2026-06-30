@@ -93,9 +93,13 @@ export default function LoginPage() {
     <div className="max-w-md w-full">
       {/* Logo & Header */}
       <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-surface-container-lowest border border-outline-variant mb-4 ring-4 ring-secondary/10">
-          <span className="material-symbols-outlined text-secondary text-4xl">memory</span>
-        </div>
+        <Link
+          href="/"
+          aria-label="Tech Gallery home"
+          className="inline-flex items-center justify-center w-20 h-20 bg-surface-container-lowest border border-outline-variant mb-4 ring-4 ring-secondary/10 hover:border-secondary transition-colors"
+        >
+          <img src="/assets/logo-vertical-blue.png" alt="Tech Gallery" className="w-14 h-14 object-contain" />
+        </Link>
         <h1 className="text-headline-lg font-display font-bold text-on-surface">Welcome Back!</h1>
         <p className="text-on-surface-variant mt-2 text-body-md">Log in to gear up your setup</p>
       </div>

@@ -10,6 +10,10 @@ import { useAuthStore } from '@/stores/authStore'
 import { registerSchema, type RegisterFormData } from '@/lib/validators'
 import { useTitle } from '@/hooks/useTitle'
 
+// Social login is not implemented yet — hidden until the providers are wired up.
+// Flip to true to re-enable the "Or continue with" divider and provider buttons.
+const SOCIAL_LOGIN_ENABLED = false
+
 export default function RegisterPage() {
   useTitle('Create Account - Tech Gallery')
 
@@ -42,8 +46,10 @@ export default function RegisterPage() {
       })
       toast.success('Account created successfully!')
       router.push('/account')
-    } catch {
-      toast.error('Registration failed. Please try again.')
+    } catch (err) {
+      // Surface the API's validation message (e.g. "Phone has already been taken") instead of a generic error.
+      const data = (err as { response?: { data?: { messages?: string[]; message?: string } } }).response?.data
+      toast.error(data?.messages?.[0] || data?.message || 'Registration failed. Please try again.')
     }
   }
 
@@ -58,12 +64,12 @@ export default function RegisterPage() {
 
         <div className="relative z-10">
           {/* Logo */}
-          <div className="flex items-center gap-2 mb-8">
+          <Link href="/" aria-label="Tech Gallery home" className="inline-flex items-center gap-2 mb-8 group">
             <div className="w-10 h-10 bg-secondary flex items-center justify-center">
-              <span className="material-symbols-outlined text-white">memory</span>
+              <img src="/assets/logo-icon-transparent-white.png" alt="Tech Gallery" className="w-7 h-7 object-contain" />
             </div>
-            <span className="text-2xl font-display font-bold text-white tracking-tight">Tech Gallery</span>
-          </div>
+            <span className="text-2xl font-display font-bold text-white tracking-tight group-hover:opacity-90 transition-opacity">Tech Gallery</span>
+          </Link>
 
           <h1 className="text-display-lg font-display font-extrabold text-white leading-tight mb-4">
             Join Our <br /> <span className="text-secondary">Operator Network</span>
@@ -250,33 +256,37 @@ export default function RegisterPage() {
               <span className="material-symbols-outlined">arrow_forward</span>
             </button>
 
-            {/* Divider */}
-            <div className="relative my-8">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-outline-variant" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-4 bg-surface-container-lowest text-on-surface-variant text-label-sm uppercase tracking-wider">Or continue with</span>
-              </div>
-            </div>
+            {SOCIAL_LOGIN_ENABLED && (
+              <>
+                {/* Divider */}
+                <div className="relative my-8">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-outline-variant" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-4 bg-surface-container-lowest text-on-surface-variant text-label-sm uppercase tracking-wider">Or continue with</span>
+                  </div>
+                </div>
 
-            {/* Social Buttons */}
-            <div className="grid grid-cols-2 gap-4">
-              <button
-                type="button"
-                className="flex items-center justify-center gap-2 py-2.5 border border-outline-variant hover:bg-surface-container transition-colors"
-              >
-                <span className="material-symbols-outlined text-lg text-on-surface-variant">g_translate</span>
-                <span className="text-sm font-semibold text-on-surface">Google</span>
-              </button>
-              <button
-                type="button"
-                className="flex items-center justify-center gap-2 py-2.5 border border-outline-variant hover:bg-surface-container transition-colors"
-              >
-                <span className="text-secondary text-xl font-bold leading-none">f</span>
-                <span className="text-sm font-semibold text-on-surface">Facebook</span>
-              </button>
-            </div>
+                {/* Social Buttons */}
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    type="button"
+                    className="flex items-center justify-center gap-2 py-2.5 border border-outline-variant hover:bg-surface-container transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-lg text-on-surface-variant">g_translate</span>
+                    <span className="text-sm font-semibold text-on-surface">Google</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="flex items-center justify-center gap-2 py-2.5 border border-outline-variant hover:bg-surface-container transition-colors"
+                  >
+                    <span className="text-secondary text-xl font-bold leading-none">f</span>
+                    <span className="text-sm font-semibold text-on-surface">Facebook</span>
+                  </button>
+                </div>
+              </>
+            )}
 
             {/* Sign In Link */}
             <p className="text-center text-body-sm text-on-surface-variant mt-8">
