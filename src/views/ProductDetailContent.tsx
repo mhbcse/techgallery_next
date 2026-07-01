@@ -190,7 +190,7 @@ export default function ProductDetailContent({
             <div className="flex flex-col-reverse md:flex-row gap-4">
               {thumbnails.length > 0 && (
                 <div className="flex md:flex-col gap-3">
-                  {thumbnails.slice(0, 4).map((url) => (
+                  {thumbnails.map((url) => (
                     <button
                       key={url}
                       onClick={() => setMainImage(url)}
