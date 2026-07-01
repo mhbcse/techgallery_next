@@ -58,7 +58,9 @@ export default function ProductDetailContent({
   product,
   relatedProducts,
 }: ProductDetailContentProps) {
-  const [mainImage, setMainImage] = useState<string | null>(product.photo_url)
+  const [mainImage, setMainImage] = useState<string | null>(
+    [...product.images].sort((a, b) => a.position - b.position)[0]?.image_url ?? null
+  )
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null)
   const [selectedColorId, setSelectedColorId] = useState<string | null>(null)
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null)
@@ -104,13 +106,13 @@ export default function ProductDetailContent({
     setSelectedOfferId(null)
   }, [selectedPropertyId, selectedColorId, product])
 
-  // Thumbnail strip: cover photo, then the product's gallery images (position-ordered),
-  // then any variant-specific images — deduped, skipping blanks.
+  // Thumbnail strip: the product's gallery images (position-ordered), then any
+  // variant-specific images — deduped, skipping blanks. The cover/thumbnail is
+  // intentionally excluded.
   const thumbnails: string[] = []
   const pushThumb = (url: string | null | undefined) => {
     if (url && !thumbnails.includes(url)) thumbnails.push(url)
   }
-  pushThumb(product.photo_url)
   ;[...product.images]
     .sort((a, b) => a.position - b.position)
     .forEach((img) => pushThumb(img.image_url))

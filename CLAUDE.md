@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Dev server:** `npm run dev` (Next.js dev server)
 - **Build:** `npm run build` (Next.js build)
-- **Deploy to Cloudflare:** `opennextjs-cloudflare build && npx wrangler deploy` (avoid `npm run deploy` — known EPIPE bug with miniflare)
+- **Deploy to Cloudflare:** `NEXT_PUBLIC_API_BASE_URL=https://api.techgallerybd.com opennextjs-cloudflare build && npx wrangler deploy` (avoid `npm run deploy` — known EPIPE bug with miniflare). The `NEXT_PUBLIC_API_BASE_URL` prefix is **required**: this var is inlined at build time, and Next.js loads `.env.local` (which holds the local dev API URL) with higher precedence than `.env`, so a plain build bakes the local URL into production. Setting it as a shell var overrides `.env.local`. Verify with `grep -roh "api.techgallerybd[a-z:.0-9]*" .open-next/assets/_next/static | sort | uniq -c` before deploying.
 - **Tests:** `npm test` (Vitest, run once) or `npm run test:watch`. Vitest + Testing Library; config in `vitest.config.ts`, setup in `vitest.setup.ts`. Test files (`*.test.ts[x]`) live next to the code and are excluded from the Next/TS build via `tsconfig.json`.
 - No linter is configured.
 
