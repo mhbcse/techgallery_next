@@ -234,25 +234,6 @@ export default function DashboardPage() {
               Edit Profile
             </Link>
           </div>
-
-          {/* Member Exclusive Promo */}
-          <div className="bg-tertiary-container p-6 text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-secondary/10 -translate-y-1/2 translate-x-1/2" />
-            <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 translate-y-1/2 -translate-x-1/2" />
-            <div className="relative z-10">
-              <span className="text-label-sm uppercase tracking-wider font-bold bg-secondary text-white px-3 py-1">
-                Member Exclusive
-              </span>
-              <p className="text-3xl font-extrabold mt-3 mb-1 font-display">15% OFF</p>
-              <p className="text-body-sm text-white/80 mb-4">On your next order</p>
-              <Link
-                href="/shop"
-                className="bg-secondary text-white px-5 py-2 text-label-md uppercase tracking-widest hover:bg-secondary/90 transition-colors inline-block"
-              >
-                Shop Now
-              </Link>
-            </div>
-          </div>
         </div>
       </div>
 

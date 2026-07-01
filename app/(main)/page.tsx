@@ -94,11 +94,13 @@ export default async function HomePage() {
             <div className="relative w-full aspect-square max-w-lg group">
               <div className="absolute inset-0 bg-secondary/20 blur-3xl rounded-full scale-75 group-hover:scale-90 transition-transform duration-700" />
               {feature?.photo_url ? (
-                <img
-                  src={feature.photo_url}
-                  alt={feature.name}
-                  className="relative z-10 w-full h-full object-contain drop-shadow-[0_0_30px_rgba(0,123,255,0.5)]"
-                />
+                <Link href={feature.slug ? `/products/${feature.slug}` : '/shop'} className="block w-full h-full">
+                  <img
+                    src={feature.photo_url}
+                    alt={feature.name}
+                    className="relative z-10 w-full h-full object-contain drop-shadow-[0_0_30px_rgba(0,123,255,0.5)]"
+                  />
+                </Link>
               ) : (
                 <img
                   src="/assets/logo-vertical-transparent-white.png"

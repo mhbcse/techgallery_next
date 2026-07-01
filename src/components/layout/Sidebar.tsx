@@ -7,10 +7,9 @@ import { useAuthStore } from '@/stores/authStore'
 const menuItems = [
   { icon: 'dashboard', label: 'Dashboard', href: '/account' },
   { icon: 'shopping_bag', label: 'My Orders', href: '/account/orders' },
-  { icon: 'favorite', label: 'Wishlist', href: '/account/wishlist' },
   { icon: 'person', label: 'My Profile', href: '/account/profile' },
   { icon: 'local_offer', label: 'Rewards', href: '#' },
-  { icon: 'support_agent', label: 'Support', href: '#' },
+  { icon: 'support_agent', label: 'Support', href: '/account/support' },
 ]
 
 export default function Sidebar() {
