@@ -50,8 +50,11 @@ export default async function HomePage() {
   }
 
   const feature = products[0]
+  // The Command Center large tile shows a different product than the hero banner; fall
+  // back to the hero only when the catalog has a single product.
+  const trending = products[1] ?? feature
   // Interleave bundles into the secondary cards, keeping the grid tidy at 4 tiles.
-  const secondaryEntries = mergeCatalog(products.slice(1, 5), bundles, 2).slice(0, 4)
+  const secondaryEntries = mergeCatalog(products.slice(2, 6), bundles, 2).slice(0, 4)
 
   return (
     <div className="overflow-x-hidden">
@@ -139,21 +142,21 @@ export default async function HomePage() {
           {products.length > 0 ? (
             <div className="grid grid-cols-1 lg:grid-cols-6 gap-4">
               {/* Large feature */}
-              {feature && (
+              {trending && (
                 <Link
-                  href={`/products/${feature.slug}`}
+                  href={`/products/${trending.slug}`}
                   className="lg:col-span-3 bg-white border border-outline-variant p-1 group overflow-hidden"
                 >
                   <div className="relative h-full min-h-[400px]">
                     <img
-                      src={feature.photo_url || feature.thumbnail_url || '/assets/logo-vertical-blue.png'}
-                      alt={feature.name}
+                      src={trending.photo_url || trending.thumbnail_url || '/assets/logo-vertical-blue.png'}
+                      alt={trending.name}
                       className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-primary via-transparent to-transparent opacity-80" />
                     <div className="absolute bottom-0 left-0 p-8">
                       <span className="bg-secondary text-white text-[10px] font-bold px-2 py-1 mb-4 inline-block">FEATURED</span>
-                      <h3 className="text-white font-headline-lg text-headline-lg mb-2 uppercase line-clamp-2">{feature.name}</h3>
+                      <h3 className="text-white font-headline-lg text-headline-lg mb-2 uppercase line-clamp-2">{trending.name}</h3>
                       <span className="text-white font-label-md text-label-md flex items-center gap-2">
                         DEPLOY SYSTEM <span className="material-symbols-outlined text-sm">east</span>
                       </span>
