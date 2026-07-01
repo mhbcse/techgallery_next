@@ -8,6 +8,7 @@ import { useCartStore } from '@/stores/cartStore'
 import { useCartUIStore } from '@/stores/cartUIStore'
 import { useWishlistStore } from '@/stores/wishlistStore'
 import { formatCurrency } from '@/lib/formatCurrency'
+import { trackViewContent, trackAddToCart } from '@/lib/pixel'
 import QuantitySelector from '@/components/product/QuantitySelector'
 import ProductCard from '@/components/product/ProductCard'
 import Breadcrumb from '@/components/common/Breadcrumb'
@@ -120,6 +121,14 @@ export default function ProductDetailContent({
 
   const currentPrice = selectedVariant?.price ?? product.price_min
   const originalPrice = selectedVariant?.original_price ?? null
+
+  // Fire ViewContent for the selected variant, re-firing whenever the variant changes.
+  const viewedContentId = selectedVariant?.content_id ?? null
+  useEffect(() => {
+    trackViewContent({ contentId: viewedContentId, value: selectedVariant?.price ?? null })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewedContentId])
+
   const stockCount = selectedVariant?.available_stock ?? 0
   const inStock = stockCount > 0
   // Preorder variants carry no physical stock but are still orderable.
@@ -141,6 +150,7 @@ export default function ProductDetailContent({
           productId: product.id,
           variantId: `offer-${selectedOffer.id}`,
           quantityTierId: selectedOffer.id,
+          contentId: selectedVariant.content_id,
           name: product.name,
           variantName: `${selectedOffer.variant_name} · Buy ${selectedOffer.quantity}`,
           price: Number(selectedOffer.price),
@@ -150,6 +160,7 @@ export default function ProductDetailContent({
       : {
           productId: product.id,
           variantId: selectedVariant.id,
+          contentId: selectedVariant.content_id,
           name: product.name,
           variantName: selectedVariant.name || product.name,
           price: Number(selectedVariant.price),
@@ -157,6 +168,7 @@ export default function ProductDetailContent({
           imageUrl: selectedVariant.image_url || product.thumbnail_url || product.photo_url,
         }
     addItem(cartItem)
+    trackAddToCart({ contentId: selectedVariant.content_id, value: cartItem.price, quantity })
     toast.success('Added to loadout')
     openCartAdded(cartItem, relatedProducts)
   }

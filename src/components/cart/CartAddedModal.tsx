@@ -8,6 +8,7 @@ import { useCartStore } from '@/stores/cartStore'
 import { getProduct } from '@/api/products'
 import type { Product } from '@/api/types'
 import { formatCurrency } from '@/lib/formatCurrency'
+import { trackAddToCart } from '@/lib/pixel'
 
 export default function CartAddedModal() {
   const router = useRouter()
@@ -35,12 +36,14 @@ export default function CartAddedModal() {
       addItem({
         productId: product.id,
         variantId: variant.id,
+        contentId: variant.content_id,
         name: product.name,
         variantName: variant.name || product.name,
         price: Number(variant.price),
         quantity: 1,
         imageUrl: variant.image_url || product.thumbnail_url || product.photo_url,
       })
+      trackAddToCart({ contentId: variant.content_id, value: Number(variant.price), quantity: 1 })
       toast.success('Added to loadout')
     } catch {
       toast.error('Could not add this unit')

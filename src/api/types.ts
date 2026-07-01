@@ -74,6 +74,9 @@ export interface Offer {
 
 export interface Variant {
   id: string
+  // Catalog-feed id (Meta/Google/TikTok `content_id`), e.g. "12-34-web-7". Send as
+  // `content_ids` in pixel events. Null when no website is resolved.
+  content_id: string | null
   name: string | null
   sku: string | null
   price: number
@@ -182,6 +185,10 @@ export interface Settings {
   meta_pixel_id: string | null
   google_analytics_id: string | null
   google_tag_manager_id: string | null
+  tiktok_pixel_id: string | null
+  microsoft_clarity_id: string | null
+  // Full CDN URL for the site favicon; "" when unset.
+  favicon_url: string
 }
 
 export interface Location {
@@ -244,6 +251,7 @@ export interface OrderTracking {
   wbraid?: string
   gbraid?: string
   ttclid?: string
+  ttp?: string
   ad_id?: string
   ad_group_id?: string
   campaign_id?: string

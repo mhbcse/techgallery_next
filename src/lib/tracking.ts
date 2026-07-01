@@ -87,11 +87,13 @@ export function getStoredTracking(): OrderTracking {
   const referrer = readCookie('_referrer')
   if (referrer) tracking.referrer = referrer
 
-  // _fbp / _fbc are set by Meta's pixel; the cookie is the source of truth.
+  // _fbp / _fbc are set by Meta's pixel; _ttp by TikTok's. The cookies are the source of truth.
   const fbp = readCookie('_fbp')
   const fbc = readCookie('_fbc')
+  const ttp = readCookie('_ttp')
   if (fbp) tracking.fbp = fbp
   if (fbc) tracking.fbc = fbc
+  if (ttp) tracking.ttp = ttp
 
   tracking.session_id = getSessionId()
   tracking.visitor_id = getVisitorId()

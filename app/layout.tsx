@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { Hanken_Grotesk, Inter, JetBrains_Mono } from 'next/font/google'
 import Providers from './providers'
+import { serverFetch } from '@/api/server'
+import type { Settings, SingleResponse } from '@/api/types'
 import '@/index.css'
 
 const hankenGrotesk = Hanken_Grotesk({
@@ -24,13 +26,23 @@ const jetbrainsMono = JetBrains_Mono({
   display: 'swap',
 })
 
-export const metadata: Metadata = {
-  title: 'Tech Gallery - High-Performance Peripherals',
-  description:
-    'The definitive source for high-performance peripheral engineering. Keyboards, mice and audio gear designed for the relentless, built for the elite.',
-  icons: {
-    icon: '/assets/logo-vertical-blue.png',
-  },
+export async function generateMetadata(): Promise<Metadata> {
+  let favicon = '/assets/logo-vertical-blue.png'
+  try {
+    const res = await serverFetch<SingleResponse<Settings>>('/api/v1/settings')
+    if (res.data?.favicon_url) favicon = res.data.favicon_url
+  } catch {
+    // Fall back to the bundled icon if settings can't be fetched.
+  }
+
+  return {
+    title: 'Tech Gallery - High-Performance Peripherals',
+    description:
+      'The definitive source for high-performance peripheral engineering. Keyboards, mice and audio gear designed for the relentless, built for the elite.',
+    icons: {
+      icon: favicon,
+    },
+  }
 }
 
 export default function RootLayout({

@@ -14,6 +14,7 @@ import { listDistricts, listAreas } from '@/api/locations'
 import type { Location } from '@/api/types'
 import { getStoredTracking } from '@/lib/tracking'
 import { toOrderItems } from '@/lib/orderItems'
+import { trackInitiateCheckout } from '@/lib/pixel'
 import { shippingSchema, type ShippingFormData } from '@/lib/validators'
 import { formatCurrency } from '@/lib/formatCurrency'
 import EmptyState from '@/components/common/EmptyState'
@@ -44,6 +45,18 @@ export default function CartPage() {
       .then(setDistricts)
       .catch(() => {})
   }, [])
+
+  // Fire InitiateCheckout once the (hydrated) cart is known and non-empty.
+  const checkoutTracked = useRef(false)
+  useEffect(() => {
+    if (checkoutTracked.current || items.length === 0) return
+    const contentIds = items
+      .map((i) => i.contentId)
+      .filter((id): id is string => !!id)
+    if (contentIds.length === 0) return
+    checkoutTracked.current = true
+    trackInitiateCheckout({ contentIds, value: subtotal(), numItems: totalItems() })
+  }, [items, subtotal, totalItems])
 
   const selectedDistrict = districts.find((d) => String(d.id) === districtId)
   const selectedArea = areas.find((a) => String(a.id) === areaId)

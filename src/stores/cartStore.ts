@@ -10,6 +10,8 @@ export interface CartItem {
   bundleVariantId?: string
   // Set on quantity-offer lines; the order is placed with quantity_tier_id.
   quantityTierId?: string
+  // Variant catalog content_id for Meta pixel attribution (null for bundle lines).
+  contentId?: string | null
   name: string
   variantName: string
   price: number
