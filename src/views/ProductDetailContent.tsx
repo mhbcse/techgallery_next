@@ -117,6 +117,7 @@ export default function ProductDetailContent({
   orderedVariants.forEach((v) => pushThumb(v.image_url))
 
   const currentPrice = selectedVariant?.price ?? product.price_min
+  const originalPrice = selectedVariant?.original_price ?? null
   const stockCount = selectedVariant?.available_stock ?? 0
   const inStock = stockCount > 0
 
@@ -164,8 +165,8 @@ export default function ProductDetailContent({
         productId: product.id,
         slug: product.slug,
         name: product.name,
-        price: product.price_min,
-        originalPrice: product.price_max,
+        price: currentPrice,
+        originalPrice: originalPrice,
         imageUrl: product.thumbnail_url || product.photo_url,
       })
       toast.success('Saved to wishlist')
@@ -267,11 +268,11 @@ export default function ProductDetailContent({
                 <span className="font-display-lg text-3xl font-extrabold text-white">
                   {formatCurrency(currentPrice)}
                 </span>
-                {product.price_max && currentPrice && Number(product.price_max) > Number(currentPrice) && (
+                {originalPrice && currentPrice && Number(originalPrice) > Number(currentPrice) && (
                   <>
-                    <span className="text-outline line-through text-sm">{formatCurrency(product.price_max)}</span>
+                    <span className="text-outline line-through text-sm">{formatCurrency(originalPrice)}</span>
                     <span className="bg-secondary text-white text-label-sm font-bold px-2 py-0.5">
-                      -{Math.round(((Number(product.price_max) - Number(currentPrice)) / Number(product.price_max)) * 100)}%
+                      -{Math.round(((Number(originalPrice) - Number(currentPrice)) / Number(originalPrice)) * 100)}%
                     </span>
                   </>
                 )}
