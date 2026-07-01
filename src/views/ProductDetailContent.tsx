@@ -122,6 +122,9 @@ export default function ProductDetailContent({
   const originalPrice = selectedVariant?.original_price ?? null
   const stockCount = selectedVariant?.available_stock ?? 0
   const inStock = stockCount > 0
+  // Preorder variants carry no physical stock but are still orderable.
+  const isPreorder = !!selectedVariant?.preorder && !inStock
+  const canOrder = inStock || isPreorder
 
   // Quantity offers tied to the currently selected variant, and the picked one.
   const variantOffers = selectedVariant
@@ -287,6 +290,10 @@ export default function ProductDetailContent({
                 <span className="inline-flex items-center gap-1 font-label-sm text-label-sm uppercase tracking-widest px-3 py-1 bg-secondary/10 text-secondary">
                   <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" /> In Stock
                 </span>
+              ) : isPreorder ? (
+                <span className="inline-flex items-center gap-1 font-label-sm text-label-sm uppercase tracking-widest px-3 py-1 bg-secondary/10 text-secondary">
+                  <span className="w-1.5 h-1.5 bg-secondary rounded-full animate-pulse" /> Pre-order
+                </span>
               ) : (
                 <span className="inline-flex items-center font-label-sm text-label-sm uppercase tracking-widest px-3 py-1 bg-red-100 text-red-700">
                   Out of Stock
@@ -382,17 +389,17 @@ export default function ProductDetailContent({
 
             <div className="mb-6">
               <h3 className="font-label-md text-label-md font-bold uppercase tracking-wider text-on-surface-variant mb-2">Quantity</h3>
-              <QuantitySelector quantity={quantity} onChange={setQuantity} min={1} max={Math.max(stockCount, 1)} />
+              <QuantitySelector quantity={quantity} onChange={setQuantity} min={1} max={inStock ? stockCount : isPreorder ? 99 : 1} />
             </div>
 
             <div className="flex items-center gap-3 mb-8">
               <button
                 onClick={handleAddToCart}
-                disabled={!inStock}
+                disabled={!canOrder}
                 className="flex-1 flex items-center justify-center gap-2 bg-primary text-white font-label-md text-label-md uppercase tracking-widest py-4 hover:bg-secondary active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span className="material-symbols-outlined text-lg">shopping_cart</span>
-                Add To Loadout
+                {isPreorder ? 'Pre-order' : 'Add To Loadout'}
               </button>
               <button
                 onClick={toggleWishlist}
@@ -480,10 +487,10 @@ export default function ProductDetailContent({
         </button>
         <button
           onClick={handleAddToCart}
-          disabled={!inStock}
+          disabled={!canOrder}
           className="flex-1 bg-primary text-white font-label-md text-label-md uppercase tracking-widest py-3 hover:bg-secondary active:scale-95 transition-all disabled:opacity-50"
         >
-          Add To Loadout — {formatCurrency(selectedOffer ? selectedOffer.price : currentPrice)}
+          {isPreorder ? 'Pre-order' : 'Add To Loadout'} — {formatCurrency(selectedOffer ? selectedOffer.price : currentPrice)}
         </button>
       </div>
     </>
