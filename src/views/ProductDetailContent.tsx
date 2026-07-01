@@ -84,12 +84,23 @@ export default function ProductDetailContent({
   const orderedColors = orderByVariants<Color>(orderedVariants, 'color_id', product.colors)
 
   useEffect(() => {
-    const defaultVariant = orderedVariants.find((v) => v.is_default) || orderedVariants[0] || null
-    setSelectedVariant(defaultVariant)
-    if (defaultVariant) {
-      setSelectedPropertyId(defaultVariant.property_id)
-      setSelectedColorId(defaultVariant.color_id)
-      if (defaultVariant.image_url) setMainImage(defaultVariant.image_url)
+    // Prefer a variant deep-linked via ?variant=<id> (e.g. from an ad/feed link) so the
+    // page — and the ViewContent pixel below — lands on the advertised variant. Read the
+    // param client-side to keep the page SSR/prerendered; fall back to the default variant.
+    const variantParam =
+      typeof window !== 'undefined'
+        ? new URLSearchParams(window.location.search).get('variant')
+        : null
+    const initialVariant =
+      (variantParam && orderedVariants.find((v) => String(v.id) === variantParam)) ||
+      orderedVariants.find((v) => v.is_default) ||
+      orderedVariants[0] ||
+      null
+    setSelectedVariant(initialVariant)
+    if (initialVariant) {
+      setSelectedPropertyId(initialVariant.property_id)
+      setSelectedColorId(initialVariant.color_id)
+      if (initialVariant.image_url) setMainImage(initialVariant.image_url)
     }
   }, [product])
 
