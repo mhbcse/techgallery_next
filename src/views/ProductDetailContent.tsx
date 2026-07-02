@@ -50,6 +50,13 @@ function orderByVariants<T extends { id: string }>(
   return out.length ? out : items
 }
 
+// availability_date is a bare calendar date ("YYYY-MM-DD", no timezone) — format it
+// from its parts so no timezone conversion can shift the merchant-set day.
+function formatAvailabilityDate(isoDate: string): string {
+  const [year, month, day] = isoDate.split('-').map(Number)
+  return new Date(year, month - 1, day).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
 interface ProductDetailContentProps {
   product: ProductDetail
   relatedProducts: Product[]
@@ -142,9 +149,12 @@ export default function ProductDetailContent({
 
   const stockCount = selectedVariant?.available_stock ?? 0
   const inStock = stockCount > 0
-  // Preorder variants carry no physical stock but are still orderable.
-  const isPreorder = !!selectedVariant?.preorder && !inStock
-  const canOrder = inStock || isPreorder
+  // Out-of-stock variants can still be orderable via preorder (not yet received, expected on
+  // availability_date) or backorder (resupplied continuously, ships in ~backorder_lead_days).
+  const policy = selectedVariant?.out_of_stock_policy ?? 'none'
+  const isPreorder = !inStock && policy === 'preorder'
+  const isBackorder = !inStock && policy === 'backorder'
+  const canOrder = inStock || (!inStock && !!selectedVariant?.sells_out_of_stock)
 
   // Quantity offers tied to the currently selected variant, and the picked one.
   const variantOffers = selectedVariant
@@ -316,6 +326,16 @@ export default function ProductDetailContent({
               ) : isPreorder ? (
                 <span className="inline-flex items-center gap-1 font-label-sm text-label-sm uppercase tracking-widest px-3 py-1 bg-secondary/10 text-secondary">
                   <span className="w-1.5 h-1.5 bg-secondary rounded-full animate-pulse" /> Pre-order
+                  {selectedVariant?.availability_date && (
+                    <> · Available {formatAvailabilityDate(selectedVariant.availability_date)}</>
+                  )}
+                </span>
+              ) : isBackorder ? (
+                <span className="inline-flex items-center gap-1 font-label-sm text-label-sm uppercase tracking-widest px-3 py-1 bg-secondary/10 text-secondary">
+                  <span className="w-1.5 h-1.5 bg-secondary rounded-full animate-pulse" /> Available for order
+                  {selectedVariant?.backorder_lead_days != null && (
+                    <> · Ships in ~{selectedVariant.backorder_lead_days} days</>
+                  )}
                 </span>
               ) : (
                 <span className="inline-flex items-center font-label-sm text-label-sm uppercase tracking-widest px-3 py-1 bg-red-100 text-red-700">
@@ -412,7 +432,7 @@ export default function ProductDetailContent({
 
             <div className="mb-6">
               <h3 className="font-label-md text-label-md font-bold uppercase tracking-wider text-on-surface-variant mb-2">Quantity</h3>
-              <QuantitySelector quantity={quantity} onChange={setQuantity} min={1} max={inStock ? stockCount : isPreorder ? 99 : 1} />
+              <QuantitySelector quantity={quantity} onChange={setQuantity} min={1} max={inStock ? stockCount : canOrder ? 99 : 1} />
             </div>
 
             <div className="flex items-center gap-3 mb-8">
@@ -422,7 +442,7 @@ export default function ProductDetailContent({
                 className="flex-1 flex items-center justify-center gap-2 bg-primary text-white font-label-md text-label-md uppercase tracking-widest py-4 hover:bg-secondary active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span className="material-symbols-outlined text-lg">shopping_cart</span>
-                {isPreorder ? 'Pre-order' : 'Add To Loadout'}
+                {isBackorder ? 'Available for order' : isPreorder ? 'Pre-order' : 'Add To Loadout'}
               </button>
               <button
                 onClick={toggleWishlist}
@@ -513,7 +533,7 @@ export default function ProductDetailContent({
           disabled={!canOrder}
           className="flex-1 bg-primary text-white font-label-md text-label-md uppercase tracking-widest py-3 hover:bg-secondary active:scale-95 transition-all disabled:opacity-50"
         >
-          {isPreorder ? 'Pre-order' : 'Add To Loadout'} — {formatCurrency(selectedOffer ? selectedOffer.price : currentPrice)}
+          {isBackorder ? 'Available for order' : isPreorder ? 'Pre-order' : 'Add To Loadout'} — {formatCurrency(selectedOffer ? selectedOffer.price : currentPrice)}
         </button>
       </div>
     </>

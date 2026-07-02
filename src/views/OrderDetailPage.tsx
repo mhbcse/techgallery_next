@@ -9,30 +9,7 @@ import type { Order } from '@/api/types'
 import OrderStatusBadge from '@/components/common/OrderStatusBadge'
 import { formatCurrency } from '@/lib/formatCurrency'
 import Spinner from '@/components/ui/Spinner'
-
-const trackingSteps = [
-  { label: 'Order Placed', icon: 'receipt_long' },
-  { label: 'Processing', icon: 'inventory_2' },
-  { label: 'Shipped', icon: 'local_shipping' },
-  { label: 'Delivered', icon: 'check_circle' },
-]
-
-function getTrackingStep(status: Order['status']): number {
-  switch (status) {
-    case 'pending':
-    case 'preorder':
-      return 0
-    case 'locked':
-    case 'approved':
-      return 1
-    case 'shipped':
-      return 2
-    case 'delivered':
-      return 3
-    default:
-      return -1
-  }
-}
+import { trackingSteps, getTrackingStep } from '@/lib/orderTracking'
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>() ?? {}
@@ -189,8 +166,11 @@ export default function OrderDetailPage() {
                           <p className="font-medium text-on-surface">Product #{item.product_id}</p>
                           <p className="text-body-sm text-on-surface-variant">
                             Variant #{item.variant_id}
-                            {item.preorder && (
+                            {item.out_of_stock_kind === 'preorder' && (
                               <span className="ml-2 text-secondary font-medium">Pre-order</span>
+                            )}
+                            {item.out_of_stock_kind === 'backorder' && (
+                              <span className="ml-2 text-secondary font-medium">Available for order</span>
                             )}
                           </p>
                         </div>

@@ -13,6 +13,7 @@ import { captureAbandonedCart } from '@/api/abandonedCarts'
 import { listDistricts, listAreas } from '@/api/locations'
 import type { Location } from '@/api/types'
 import { getStoredTracking } from '@/lib/tracking'
+import { readCheckoutDetails, saveCheckoutDetails } from '@/lib/checkoutDetails'
 import { toOrderItems } from '@/lib/orderItems'
 import { trackInitiateCheckout } from '@/lib/pixel'
 import { shippingSchema, type ShippingFormData } from '@/lib/validators'
@@ -61,7 +62,12 @@ export default function CartPage() {
   const selectedDistrict = districts.find((d) => String(d.id) === districtId)
   const selectedArea = areas.find((a) => String(a.id) === areaId)
 
+  // Once the shopper touches the location selects, the mount-time restore must never
+  // apply its (possibly slower) response over their choice.
+  const locationTouched = useRef(false)
+
   const handleDistrictChange = (value: string) => {
+    locationTouched.current = true
     setDistrictId(value)
     setAreaId('')
     setAreas([])
@@ -73,6 +79,8 @@ export default function CartPage() {
     register,
     handleSubmit,
     getValues,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<ShippingFormData>({
     resolver: zodResolver(shippingSchema),
@@ -82,6 +90,89 @@ export default function CartPage() {
       customer_address: user?.address || '',
     },
   })
+
+  // The auth store persists with skipHydration and is rehydrated by a providers-level
+  // effect, which runs AFTER this component's effects — so `user` is not trustworthy
+  // until hydration finishes. The restore below must know the real user to decide.
+  const [authHydrated, setAuthHydrated] = useState(false)
+  useEffect(() => {
+    if (useAuthStore.persist.hasHydrated()) {
+      setAuthHydrated(true)
+      return
+    }
+    return useAuthStore.persist.onFinishHydration(() => setAuthHydrated(true))
+  }, [])
+
+  // Restore the last-entered checkout details for returning customers, after auth
+  // hydration. The profile is re-asserted first (hard loads compute defaultValues
+  // before `user` exists) so it always wins over stored guest details. A logged-in
+  // user with an address on file never gets stored details merged in at all, and the
+  // email field — hidden while logged in — restores for guests only.
+  useEffect(() => {
+    if (!authHydrated) return
+    const profile = useAuthStore.getState().user
+    const fillIfEmpty = (field: 'customer_name' | 'customer_phone' | 'customer_address' | 'customer_email', value?: string | null) => {
+      if (value && !getValues(field)) setValue(field, value)
+    }
+    fillIfEmpty('customer_name', profile?.name)
+    fillIfEmpty('customer_phone', profile?.phone)
+    fillIfEmpty('customer_address', profile?.address)
+    if (profile?.address) return
+
+    const saved = readCheckoutDetails()
+    fillIfEmpty('customer_name', saved.name)
+    fillIfEmpty('customer_phone', saved.phone)
+    fillIfEmpty('customer_address', saved.address)
+    if (!profile) fillIfEmpty('customer_email', saved.email)
+    if (saved.districtId) {
+      setDistrictId(saved.districtId)
+      listAreas(saved.districtId)
+        .then((loaded) => {
+          if (locationTouched.current) return
+          setAreas(loaded)
+          // Only re-select the saved area if it still exists for this district.
+          if (saved.areaId && loaded.some((a) => String(a.id) === saved.areaId)) setAreaId(saved.areaId)
+        })
+        .catch(() => {})
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authHydrated])
+
+  // The one place the persisted snapshot is built (edit watcher and submit share it).
+  const persistCheckoutDetails = () => {
+    saveCheckoutDetails({
+      name: getValues('customer_name'),
+      phone: getValues('customer_phone'),
+      address: getValues('customer_address'),
+      email: getValues('customer_email'),
+      districtId,
+      areaId,
+    })
+  }
+
+  // Persist edits as they happen (debounced) so storage always matches the last-entered
+  // state; district/area selections persist immediately (they're clicks, not keystrokes).
+  // Empty values never overwrite stored ones (saveCheckoutDetails merges), so an
+  // accidental clear doesn't forget details. A pending save is flushed on cleanup.
+  useEffect(() => {
+    if (districtId || areaId) persistCheckoutDetails()
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const subscription = watch(() => {
+      clearTimeout(timer)
+      timer = setTimeout(() => {
+        timer = undefined
+        persistCheckoutDetails()
+      }, 400)
+    })
+    return () => {
+      subscription.unsubscribe()
+      if (timer) {
+        clearTimeout(timer)
+        persistCheckoutDetails()
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watch, districtId, areaId])
 
   const cartSubtotal = subtotal()
   const resolvedFee = selectedArea?.fee ?? selectedDistrict?.fee ?? null
@@ -95,6 +186,7 @@ export default function CartPage() {
   }
 
   // Silent lead capture: when a valid phone is entered but checkout isn't done.
+  // Stays on blur (not on-change) — it's a server call and needs a usable phone number.
   const lastCapturedPhone = useRef('')
   const handlePhoneBlur = () => {
     const phone = getValues('customer_phone')?.trim() ?? ''
@@ -120,7 +212,9 @@ export default function CartPage() {
       return
     }
 
-    if (!districtId || !areaId) {
+    // Require ids that resolve to actual options — a restored id whose district/area
+    // no longer exists is truthy but shows the placeholder, and must not pass.
+    if (!selectedDistrict || !selectedArea) {
       setLocationError(true)
       toast.error('Please select your district and area')
       return
@@ -162,6 +256,8 @@ export default function CartPage() {
         shipping_charge: shippingKnown ? shippingCost : undefined,
         tracking: getStoredTracking(),
       })
+
+      persistCheckoutDetails()
 
       clearCart()
       toast.success('Order placed! We’ll confirm it with you shortly.')
@@ -370,7 +466,7 @@ export default function CartPage() {
                       <select
                         value={districtId}
                         onChange={(e) => handleDistrictChange(e.target.value)}
-                        className={`${inputClass} ${locationError && !districtId ? 'ring-1 ring-red-400' : ''}`}
+                        className={`${inputClass} ${locationError && !selectedDistrict ? 'ring-1 ring-red-400' : ''}`}
                       >
                         <option value="">Select District *</option>
                         {districts.map((d) => (
@@ -380,11 +476,12 @@ export default function CartPage() {
                       <select
                         value={areaId}
                         onChange={(e) => {
+                          locationTouched.current = true
                           setAreaId(e.target.value)
                           setLocationError(false)
                         }}
                         disabled={!districtId || areas.length === 0}
-                        className={`${inputClass} disabled:opacity-50 ${locationError && !areaId ? 'ring-1 ring-red-400' : ''}`}
+                        className={`${inputClass} disabled:opacity-50 ${locationError && !selectedArea ? 'ring-1 ring-red-400' : ''}`}
                       >
                         <option value="">Select Area *</option>
                         {areas.map((a) => (

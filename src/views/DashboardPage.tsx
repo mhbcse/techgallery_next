@@ -9,30 +9,7 @@ import { listOrders } from '@/api/orders'
 import type { Order } from '@/api/types'
 import OrderStatusBadge from '@/components/common/OrderStatusBadge'
 import { formatCurrency } from '@/lib/formatCurrency'
-
-const trackingSteps = [
-  { label: 'Order Placed', icon: 'receipt_long' },
-  { label: 'Processing', icon: 'inventory_2' },
-  { label: 'Shipped', icon: 'local_shipping' },
-  { label: 'Delivered', icon: 'check_circle' },
-]
-
-function getTrackingStep(status: Order['status']): number {
-  switch (status) {
-    case 'pending':
-    case 'preorder':
-      return 0
-    case 'locked':
-    case 'approved':
-      return 1
-    case 'shipped':
-      return 2
-    case 'delivered':
-      return 3
-    default:
-      return -1
-  }
-}
+import { trackingSteps, getTrackingStep } from '@/lib/orderTracking'
 
 export default function DashboardPage() {
   useTitle('Dashboard - Tech Gallery')
@@ -50,7 +27,11 @@ export default function DashboardPage() {
   }, [])
 
   const activeOrder = orders.find(
-    (o) => o.status === 'shipped' || o.status === 'approved'
+    (o) =>
+      o.status === 'confirmed' ||
+      o.status === 'hold' ||
+      o.status === 'processing' ||
+      o.status === 'shipped'
   )
 
   const stats = [

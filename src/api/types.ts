@@ -84,7 +84,16 @@ export interface Variant {
   stock_quantity: number | null
   available_stock: number
   is_default: boolean | null
-  preorder: boolean | null
+  // How the variant sells when out of stock. `preorder` = not yet received (has
+  // availability_date); `backorder` = resupplied continuously (has backorder_lead_days).
+  out_of_stock_policy: 'none' | 'preorder' | 'backorder'
+  // Convenience flag — true when out_of_stock_policy is preorder or backorder. Gate ordering
+  // of an out-of-stock variant on this.
+  sells_out_of_stock: boolean
+  // Preorder only — the specific date stock is expected (YYYY-MM-DD). Null for none/backorder.
+  availability_date: string | null
+  // Backorder only — estimated lead time in days ("ships in ~N days"). Null for none/preorder.
+  backorder_lead_days: number | null
   position: number | null
   color_id: string | null
   property_id: string | null
@@ -126,7 +135,7 @@ export interface Brand {
 
 export interface Order {
   id: string
-  status: 'pending' | 'preorder' | 'locked' | 'approved' | 'shipped' | 'delivered' | 'failed' | 'returned' | 'cancelled'
+  status: 'pending' | 'calling' | 'confirmed' | 'hold' | 'processing' | 'shipped' | 'delivered' | 'failed' | 'returned' | 'cancelled' | 'lost'
   customer_name: string
   customer_phone: string
   customer_address: string
@@ -143,7 +152,8 @@ export interface OrderItem {
   variant_id: string
   quantity: number
   unit_price: number
-  preorder: boolean
+  // The out-of-stock kind this line was sold as, derived from the variant's policy at order time.
+  out_of_stock_kind: 'none' | 'preorder' | 'backorder'
 }
 
 export interface Pagination {
@@ -207,7 +217,7 @@ export interface BundleItem {
   quantity: number
   effective_price: number
   available_stock: number
-  preorder: boolean
+  sells_out_of_stock: boolean
 }
 
 // One selectable combo of a parent bundle. Order it by sending `id` as
@@ -220,7 +230,7 @@ export interface BundleCombo {
   image_url: string
   // Max of this combo shippable today (min across components).
   available_stock: number
-  // True if in stock or all short components are preorder-eligible.
+  // True if in stock or all short components sell out of stock (preorder or backorder).
   orderable: boolean
   items: BundleItem[]
 }
