@@ -33,20 +33,33 @@ export default function TrackingScripts() {
       document.head.appendChild(script)
     }
 
-    if (settings.google_analytics_id) {
-      const gaScript = document.createElement('script')
-      gaScript.async = true
-      gaScript.src = `https://www.googletagmanager.com/gtag/js?id=${settings.google_analytics_id}`
-      document.head.appendChild(gaScript)
+    // One unified Google tag drives both GA4 (google_analytics_id) and Google Ads
+    // (google_ads_conversion_id). Load gtag.js once — with whichever id is present,
+    // preferring GA4 — then config each id. Google Ads' config auto-renders the
+    // Conversion Linker and catches gclid.
+    if (settings.google_analytics_id || settings.google_ads_conversion_id) {
+      const primaryId = settings.google_analytics_id || settings.google_ads_conversion_id
 
-      const gaInit = document.createElement('script')
-      gaInit.innerHTML = `
+      const gtagScript = document.createElement('script')
+      gtagScript.async = true
+      gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${primaryId}`
+      document.head.appendChild(gtagScript)
+
+      const configLines = [
+        settings.google_analytics_id && `gtag('config', '${settings.google_analytics_id}');`,
+        settings.google_ads_conversion_id && `gtag('config', '${settings.google_ads_conversion_id}');`,
+      ]
+        .filter(Boolean)
+        .join('\n        ')
+
+      const gtagInit = document.createElement('script')
+      gtagInit.innerHTML = `
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-        gtag('config', '${settings.google_analytics_id}');
+        ${configLines}
       `
-      document.head.appendChild(gaInit)
+      document.head.appendChild(gtagInit)
     }
 
     if (settings.tiktok_pixel_id) {

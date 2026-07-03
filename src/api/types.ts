@@ -194,6 +194,7 @@ export interface ValidationError {
 export interface Settings {
   meta_pixel_id: string | null
   google_analytics_id: string | null
+  google_ads_conversion_id: string | null
   google_tag_manager_id: string | null
   tiktok_pixel_id: string | null
   microsoft_clarity_id: string | null
