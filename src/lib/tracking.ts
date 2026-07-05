@@ -95,8 +95,37 @@ export function getStoredTracking(): OrderTracking {
   if (fbc) tracking.fbc = fbc
   if (ttp) tracking.ttp = ttp
 
+  // GA4 sets _ga (client id) and _ga_<stream> (session id); parse both for GA4 MP attribution.
+  const gaClientId = parseGaClientId(readCookie('_ga'))
+  const gaSessionId = readGaSessionId()
+  if (gaClientId) tracking.ga_client_id = gaClientId
+  if (gaSessionId) tracking.ga_session_id = gaSessionId
+
   tracking.session_id = getSessionId()
   tracking.visitor_id = getVisitorId()
 
   return tracking
+}
+
+// _ga = GA1.1.<clientId>.<ts> => <clientId>.<ts>
+function parseGaClientId(value: string | undefined): string {
+  if (!value) return ''
+  const match = value.match(/^GA\d+\.\d+\.(.+)$/)
+  return match ? match[1] : ''
+}
+
+// The per-stream _ga_<suffix> cookie holds the session id, in one of two formats:
+// GS1.1.<session_id>... (3rd dot-field) or GS2.1.s<session_id>$o... (the s-token).
+function readGaSessionId(): string {
+  if (typeof document === 'undefined') return ''
+  for (const part of document.cookie.split(';')) {
+    const trimmed = part.trim()
+    if (!trimmed.startsWith('_ga_')) continue
+    const value = decodeURIComponent(trimmed.slice(trimmed.indexOf('=') + 1))
+    const gs2 = value.match(/^GS2\.\d+\.s(\d+)/)
+    if (gs2) return gs2[1]
+    const fields = value.split('.')
+    if (fields.length > 2) return fields[2]
+  }
+  return ''
 }

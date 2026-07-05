@@ -266,6 +266,9 @@ export interface OrderTracking {
   ad_id?: string
   ad_group_id?: string
   campaign_id?: string
+  // GA4 client/session ids (from the _ga / _ga_* cookies) for GA4 MP attribution.
+  ga_client_id?: string
+  ga_session_id?: string
   // Link a captured cart/order back to a recorded visit.
   session_id?: string
   visitor_id?: string
