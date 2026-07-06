@@ -69,6 +69,7 @@ export default function BundleDetailContent({ bundle }: BundleDetailContentProps
       price: Number(selectedCombo.price),
       quantity,
       imageUrl: selectedCombo.image_url || bundle.image_url || null,
+      contentId: selectedCombo.content_id,
     }
     addItem(cartItem)
     trackAddToCart({ contentId: selectedCombo.content_id, value: Number(selectedCombo.price) * quantity, quantity })

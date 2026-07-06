@@ -25,19 +25,38 @@ describe('pixel routing', () => {
     window.ttq = { track: vi.fn(), identify: vi.fn() }
     window.gtag = vi.fn()
     window.dataLayer = []
+    vi.stubGlobal('fetch', vi.fn(() => Promise.resolve({ ok: true } as Response)))
   })
 
-  it('fires native fbq/ttq/gtag with the wire name per platform', () => {
+  it('fires native fbq/ttq/gtag with the wire name and a shared event id', () => {
     configurePixels(baseSettings({ browser_events: { AddToCart: { meta: true, tiktok: true, google: true } } }))
     trackAddToCart({ contentId: 'p1-v1-web-1', value: 100, quantity: 2 })
 
-    expect(window.fbq).toHaveBeenCalledWith('track', 'AddToCart', expect.objectContaining({ content_ids: ['p1-v1-web-1'] }))
-    expect(window.ttq!.track).toHaveBeenCalledWith('AddToCart', expect.objectContaining({ contents: [{ id: 'p1-v1-web-1', quantity: 2 }] }))
+    expect(window.fbq).toHaveBeenCalledWith('track', 'AddToCart', expect.objectContaining({ content_ids: ['p1-v1-web-1'] }), { eventID: expect.any(String) })
+    expect(window.ttq!.track).toHaveBeenCalledWith('AddToCart', expect.objectContaining({ contents: [{ id: 'p1-v1-web-1', quantity: 2 }] }), { event_id: expect.any(String) })
     expect(window.gtag).toHaveBeenCalledWith('event', 'add_to_cart', expect.objectContaining({
       currency: 'BDT',
       items: [{ item_id: 'p1-v1-web-1', quantity: 2, price: 50 }],
     }))
     expect(window.dataLayer).toHaveLength(0)
+
+    const fbEventID = (window.fbq as ReturnType<typeof vi.fn>).mock.calls[0][3].eventID
+    const ttEventID = (window.ttq!.track as ReturnType<typeof vi.fn>).mock.calls[0][2].event_id
+    expect(fbEventID).toBe(ttEventID)
+  })
+
+  it('mirrors the event to the API /tracking-events with the same event id for server dedup', async () => {
+    configurePixels(baseSettings({ browser_events: { AddToCart: { meta: true, tiktok: true, google: true } } }))
+    trackAddToCart({ contentId: 'p1-v1-web-1', value: 100, quantity: 2 })
+
+    const fetchMock = fetch as ReturnType<typeof vi.fn>
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toContain('/api/v1/tracking-events')
+    const body = JSON.parse((init as RequestInit).body as string)
+    expect(body.event_name).toBe('AddToCart')
+    const nativeEventID = (window.fbq as ReturnType<typeof vi.fn>).mock.calls[0][3].eventID
+    expect(body.event_id).toBe(nativeEventID)
   })
 
   it('routes GTM platforms via dataLayer and pushes the shared meta/tiktok event once', () => {
