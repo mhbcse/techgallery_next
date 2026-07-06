@@ -36,7 +36,7 @@ All stores use `zustand/middleware/persist` to localStorage:
 - `src/api/server.ts` — Server-side fetch helper for Next.js server components.
 - API modules (`auth.ts`, `products.ts`, `categories.ts`, `brands.ts`, `orders.ts`) call REST endpoints under `/api/v1/`.
 - Response shapes: `PaginatedResponse<T>` (with `meta: Pagination`) and `SingleResponse<T>` defined in `src/api/types.ts`.
-- **Backend API spec (OpenAPI):** `/home/maruf/projects/personal/eshops/eshops_api/docs/storefront_api_v1.yaml` — the storefront REST API contract. Consult it for endpoint shapes and fields (e.g. store settings expose `google_ads_conversion_id`).
+- **Backend API spec (OpenAPI):** `/home/maruf/projects/personal/eshops/eshops_api/docs/headless/storefront_api_v1.yaml` — the storefront REST API contract. Consult it for endpoint shapes and fields (e.g. store settings expose `google_ads_conversion_id`).
 
 ### Form Validation
 

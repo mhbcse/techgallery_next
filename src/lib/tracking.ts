@@ -4,7 +4,7 @@ import { readCookie, setCookie } from './cookies'
 // Attribution captured from the landing URL + Meta cookies, persisted as first-party
 // `_<param>` cookies on the registrable root (same names as the eshops_storefront landing
 // pages) so it is shared across the merchant's subdomains, then replayed onto order
-// creation and abandoned-cart capture. Visitor/session ids stay in web storage.
+// creation and incomplete-order capture. Visitor/session ids stay in web storage.
 
 const SESSION_KEY = 'attr-session-id'
 const VISITOR_KEY = 'attr-visitor-id'

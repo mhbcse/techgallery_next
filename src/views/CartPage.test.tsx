@@ -11,7 +11,7 @@ const { pushMock } = vi.hoisted(() => ({ pushMock: vi.fn() }))
 vi.mock('next/navigation', () => ({ useRouter: () => ({ push: pushMock }) }))
 vi.mock('@/api/orders', () => ({ createOrder: vi.fn() }))
 vi.mock('@/api/locations', () => ({ listDistricts: vi.fn(), listAreas: vi.fn() }))
-vi.mock('@/api/abandonedCarts', () => ({ captureAbandonedCart: vi.fn() }))
+vi.mock('@/api/incompleteOrders', () => ({ captureIncompleteOrder: vi.fn() }))
 vi.mock('@/lib/tracking', () => ({ getStoredTracking: () => ({}) }))
 vi.mock('react-hot-toast', () => {
   const fn = Object.assign(vi.fn(), { success: vi.fn(), error: vi.fn() })

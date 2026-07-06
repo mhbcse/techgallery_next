@@ -9,7 +9,7 @@ import toast from 'react-hot-toast'
 import { useCartStore } from '@/stores/cartStore'
 import { useAuthStore } from '@/stores/authStore'
 import { createOrder } from '@/api/orders'
-import { captureAbandonedCart } from '@/api/abandonedCarts'
+import { captureIncompleteOrder } from '@/api/incompleteOrders'
 import { listDistricts, listAreas } from '@/api/locations'
 import type { Location } from '@/api/types'
 import { getStoredTracking } from '@/lib/tracking'
@@ -192,7 +192,7 @@ export default function CartPage() {
     const phone = getValues('customer_phone')?.trim() ?? ''
     if (phone.length < 11 || items.length === 0 || phone === lastCapturedPhone.current) return
     lastCapturedPhone.current = phone
-    captureAbandonedCart({
+    captureIncompleteOrder({
       customer_phone: phone,
       customer_name: getValues('customer_name')?.trim() || undefined,
       customer_address: getValues('customer_address')?.trim() || undefined,

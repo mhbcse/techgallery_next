@@ -2,7 +2,7 @@ import apiClient from './client'
 import type { OrderTracking } from './types'
 import type { OrderItemInput } from './orders'
 
-export interface AbandonedCartPayload {
+export interface IncompleteOrderPayload {
   customer_phone: string
   customer_name?: string
   customer_address?: string
@@ -14,9 +14,9 @@ export interface AbandonedCartPayload {
 }
 
 // Silent lead capture. Backend always responds 204 and never surfaces validation errors.
-export async function captureAbandonedCart(payload: AbandonedCartPayload): Promise<void> {
+export async function captureIncompleteOrder(payload: IncompleteOrderPayload): Promise<void> {
   try {
-    await apiClient.post('/api/v1/abandoned-carts', payload)
+    await apiClient.post('/api/v1/incomplete-orders', payload)
   } catch {
     // Capture is best-effort; swallow errors.
   }

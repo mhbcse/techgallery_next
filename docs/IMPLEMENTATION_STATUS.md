@@ -22,7 +22,7 @@ Every customer-facing endpoint `eshops_api` exposes has a matching API module wi
 | Bundles | `GET /bundles`, `GET /bundles/{id}` | `src/api/bundles.ts` | ✅ wired |
 | Locations | `GET /locations/districts`, `GET /locations/districts/{id}/areas` | `src/api/locations.ts` | ✅ wired (shipping fees) |
 | Orders | `GET /orders`, `GET /orders/{id}`, `POST /orders` | `src/api/orders.ts` + `cartStore` | ✅ wired |
-| Abandoned carts | `POST /abandoned-carts` | `src/api/abandonedCarts.ts` | ✅ wired (phone-blur beacon) |
+| Incomplete orders | `POST /incomplete-orders` | `src/api/incompleteOrders.ts` | ✅ wired (phone-blur beacon) |
 | Tracking | `POST /visits`, `POST /_track` | `src/api/tracking.ts` | ✅ wired |
 | Settings | `GET /settings` (Meta Pixel, GA, GTM) | `src/api/settings.ts` | ✅ wired |
 
@@ -70,7 +70,7 @@ Browsing, auth, and dashboard flows have no tests yet.
 | General API | 600 req/min per IP |
 | Order creation | 30 req/min per IP |
 | Auth | 10 req/min per IP |
-| Abandoned cart | 60 req/min per IP |
+| Incomplete order | 60 req/min per IP |
 | Tracking | 120 req/min per IP |
 
 Access token: JWT (HS256), 15 min expiry. Refresh token: opaque, 30 days, rotated on use.
