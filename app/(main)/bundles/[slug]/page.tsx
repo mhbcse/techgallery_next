@@ -7,12 +7,12 @@ import BundleDetailContent from '@/views/BundleDetailContent'
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ slug: string }>
 }): Promise<Metadata> {
-  const { id } = await params
+  const { slug } = await params
 
   try {
-    const res = await serverFetch<SingleResponse<Bundle>>(`/api/v1/bundles/${id}`, {
+    const res = await serverFetch<SingleResponse<Bundle>>(`/api/v1/bundles/${slug}`, {
       revalidate: 60,
     })
     const bundle = res.data
@@ -33,14 +33,14 @@ export async function generateMetadata({
 export default async function BundleDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>
+  params: Promise<{ slug: string }>
 }) {
-  const { id } = await params
+  const { slug } = await params
 
   let bundle: Bundle | null = null
 
   try {
-    const res = await serverFetch<SingleResponse<Bundle>>(`/api/v1/bundles/${id}`, {
+    const res = await serverFetch<SingleResponse<Bundle>>(`/api/v1/bundles/${slug}`, {
       revalidate: 60,
     })
     bundle = res.data

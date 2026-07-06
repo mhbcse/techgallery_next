@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import type { Bundle, BundleCombo } from '@/api/types'
 import { useCartStore } from '@/stores/cartStore'
@@ -35,7 +35,10 @@ export default function BundleDetailContent({ bundle }: BundleDetailContentProps
     bundle.variants.find((c) => c.id === selectedComboId) || null
 
   const viewedContentId = selectedCombo?.content_id ?? null
+  const viewTracked = useRef(false)
   useEffect(() => {
+    if (viewTracked.current || !viewedContentId) return
+    viewTracked.current = true
     trackViewContent({ contentId: viewedContentId, value: selectedCombo?.price ?? null })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewedContentId])

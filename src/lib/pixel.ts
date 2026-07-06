@@ -152,6 +152,8 @@ function beaconFunnel(name: string, eventID: string, params: Record<string, unkn
 }
 
 function fire(name: string, params: Record<string, unknown>, ecommerce: Ecommerce): void {
+  const googleName = GOOGLE_EVENT_NAMES[name] ?? name
+  if (config && !config.events[name] && !config.events[googleName]) return
   const meta = config?.meta ?? 'native'
   const tiktok = config?.tiktok ?? 'native'
   const google = config?.google ?? 'none'
@@ -180,16 +182,15 @@ function fire(name: string, params: Record<string, unknown>, ecommerce: Ecommerc
     }
   }
 
-  if (enabled(name, 'google')) {
-    const wire = GOOGLE_EVENT_NAMES[name] ?? name
+  if (enabled(googleName, 'google')) {
     if (google === 'google_tag_manager') {
-      gtmPush(wire, ecommerce)
+      gtmPush(googleName, ecommerce)
     } else if (
       (google === 'google_analytics_4' || google === 'google_ads_tag') &&
       typeof window !== 'undefined' &&
       typeof window.gtag === 'function'
     ) {
-      window.gtag('event', wire, ecommerce)
+      window.gtag('event', googleName, ecommerce)
     }
   }
 

@@ -29,7 +29,10 @@ describe('pixel routing', () => {
   })
 
   it('fires native fbq/ttq/gtag with the wire name and a shared event id', () => {
-    configurePixels(baseSettings({ browser_events: { AddToCart: { meta: true, tiktok: true, google: true } } }))
+    configurePixels(baseSettings({ browser_events: {
+      AddToCart: { meta: true, tiktok: true, google: false },
+      add_to_cart: { meta: false, tiktok: false, google: true },
+    } }))
     trackAddToCart({ contentId: 'p1-v1-web-1', value: 100, quantity: 2 })
 
     expect(window.fbq).toHaveBeenCalledWith('track', 'AddToCart', expect.objectContaining({ content_ids: ['p1-v1-web-1'] }), { eventID: expect.any(String) })
@@ -43,6 +46,23 @@ describe('pixel routing', () => {
     const fbEventID = (window.fbq as ReturnType<typeof vi.fn>).mock.calls[0][3].eventID
     const ttEventID = (window.ttq!.track as ReturnType<typeof vi.fn>).mock.calls[0][2].event_id
     expect(fbEventID).toBe(ttEventID)
+  })
+
+  it('fires google via its wire-name config even when no canonical key exists', () => {
+    configurePixels(baseSettings({ browser_events: { view_item: { meta: false, tiktok: false, google: true } } }))
+    trackViewContent({ contentId: 'p1-v1-web-1', value: 100 })
+
+    expect(window.fbq).not.toHaveBeenCalled()
+    expect(window.gtag).toHaveBeenCalledWith('event', 'view_item', expect.objectContaining({ currency: 'BDT' }))
+  })
+
+  it('skips firing and beaconing entirely for an unconfigured event', () => {
+    configurePixels(baseSettings({ browser_events: { AddToCart: { meta: true, tiktok: true, google: false } } }))
+    trackViewContent({ contentId: 'p1-v1-web-1', value: 100 })
+
+    expect(window.fbq).not.toHaveBeenCalled()
+    expect(window.gtag).not.toHaveBeenCalled()
+    expect(fetch).not.toHaveBeenCalled()
   })
 
   it('mirrors the event to the API /tracking-events with the same event id for server dedup', async () => {
@@ -64,7 +84,10 @@ describe('pixel routing', () => {
       meta_browser_push_method: 'google_tag_manager',
       tiktok_browser_push_method: 'google_tag_manager',
       google_browser_push_method: 'google_tag_manager',
-      browser_events: { ViewContent: { meta: true, tiktok: true, google: true } },
+      browser_events: {
+        ViewContent: { meta: true, tiktok: true, google: false },
+        view_item: { meta: false, tiktok: false, google: true },
+      },
     }))
     trackViewContent({ contentId: 'p1-v1-web-1', value: 100 })
 
@@ -108,7 +131,10 @@ describe('pixel routing', () => {
       meta_browser_push_method: 'google_tag_manager',
       tiktok_browser_push_method: 'google_tag_manager',
       google_browser_push_method: 'google_tag_manager',
-      browser_events: { ViewContent: { meta: true, tiktok: true, google: true } },
+      browser_events: {
+        ViewContent: { meta: true, tiktok: true, google: false },
+        view_item: { meta: false, tiktok: false, google: true },
+      },
     }))
     await setCustomerMatch({ email: 'buyer@example.com', phone: '01711111111' })
     expect(window.ttq!.identify).toHaveBeenCalledWith(

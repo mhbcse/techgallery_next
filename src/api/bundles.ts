@@ -9,8 +9,8 @@ export async function listBundles(params?: {
   return res.data
 }
 
-export async function getBundle(id: string): Promise<Bundle> {
-  const res = await apiClient.get<SingleResponse<Bundle>>(`/api/v1/bundles/${id}`)
+export async function getBundle(slug: string): Promise<Bundle> {
+  const res = await apiClient.get<SingleResponse<Bundle>>(`/api/v1/bundles/${slug}`)
   return res.data.data
 }
 

@@ -20,12 +20,12 @@ export default function BundleCard({ bundle }: BundleCardProps) {
   const goToDetail = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    router.push(`/bundles/${bundle.id}`)
+    router.push(`/bundles/${bundle.slug}`)
   }
 
   return (
     <Link
-      href={`/bundles/${bundle.id}`}
+      href={`/bundles/${bundle.slug}`}
       className="group flex flex-col justify-between bg-white border border-outline-variant p-6 hover:border-secondary transition-all"
     >
       <div>

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import type { ProductDetail, Variant, Product, Color, Property, Offer } from '@/api/types'
 import { useCartStore } from '@/stores/cartStore'
@@ -140,9 +140,12 @@ export default function ProductDetailContent({
   const currentPrice = selectedVariant?.price ?? product.price_min
   const originalPrice = selectedVariant?.original_price ?? null
 
-  // Fire ViewContent for the selected variant, re-firing whenever the variant changes.
+  // Fire ViewContent once per page view (industry norm) — variant switches don't re-fire.
   const viewedContentId = selectedVariant?.content_id ?? null
+  const viewTracked = useRef(false)
   useEffect(() => {
+    if (viewTracked.current || !viewedContentId) return
+    viewTracked.current = true
     trackViewContent({ contentId: viewedContentId, value: selectedVariant?.price ?? null })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewedContentId])
