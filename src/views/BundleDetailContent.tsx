@@ -6,6 +6,7 @@ import type { Bundle, BundleCombo } from '@/api/types'
 import { useCartStore } from '@/stores/cartStore'
 import { useCartUIStore } from '@/stores/cartUIStore'
 import { formatCurrency } from '@/lib/formatCurrency'
+import { trackAddToCart, trackViewContent } from '@/lib/pixel'
 import QuantitySelector from '@/components/product/QuantitySelector'
 import Breadcrumb from '@/components/common/Breadcrumb'
 
@@ -32,6 +33,12 @@ export default function BundleDetailContent({ bundle }: BundleDetailContentProps
 
   const selectedCombo: BundleCombo | null =
     bundle.variants.find((c) => c.id === selectedComboId) || null
+
+  const viewedContentId = selectedCombo?.content_id ?? null
+  useEffect(() => {
+    trackViewContent({ contentId: viewedContentId, value: selectedCombo?.price ?? null })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewedContentId])
 
   const thumbnails = useMemo(() => {
     const urls: string[] = []
@@ -64,6 +71,7 @@ export default function BundleDetailContent({ bundle }: BundleDetailContentProps
       imageUrl: selectedCombo.image_url || bundle.image_url || null,
     }
     addItem(cartItem)
+    trackAddToCart({ contentId: selectedCombo.content_id, value: Number(selectedCombo.price) * quantity, quantity })
     toast.success(`${bundle.name} added to loadout`)
     openCartAdded(cartItem, [])
   }

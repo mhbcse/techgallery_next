@@ -74,7 +74,7 @@ export interface Offer {
 
 export interface Variant {
   id: string
-  // Catalog-feed id (Meta/Google/TikTok `content_id`), e.g. "12-34-web-7". Send as
+  // Catalog-feed id (Meta/Google/TikTok `content_id`), e.g. "product-34-web-7". Send as
   // `content_ids` in pixel events. Null when no website is resolved.
   content_id: string | null
   name: string | null
@@ -242,6 +242,8 @@ export interface BundleCombo {
   available_stock: number
   // True if in stock or all short components sell out of stock (preorder or backorder).
   orderable: boolean
+  // Catalog-feed id, e.g. "bundle-34-web-7". Null when no website is resolved.
+  content_id: string | null
   items: BundleItem[]
 }
 
