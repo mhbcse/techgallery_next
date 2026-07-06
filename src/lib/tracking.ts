@@ -107,15 +107,12 @@ export function getStoredTracking(): OrderTracking {
   return tracking
 }
 
-// _ga = GA1.1.<clientId>.<ts> => <clientId>.<ts>
 function parseGaClientId(value: string | undefined): string {
   if (!value) return ''
   const match = value.match(/^GA\d+\.\d+\.(.+)$/)
   return match ? match[1] : ''
 }
 
-// The per-stream _ga_<suffix> cookie holds the session id, in one of two formats:
-// GS1.1.<session_id>... (3rd dot-field) or GS2.1.s<session_id>$o... (the s-token).
 function readGaSessionId(): string {
   if (typeof document === 'undefined') return ''
   for (const part of document.cookie.split(';')) {

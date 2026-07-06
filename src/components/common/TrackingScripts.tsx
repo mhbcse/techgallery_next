@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { getSettings } from '@/api/settings'
 import type { Settings } from '@/api/types'
+import { configurePixels, setCustomerMatch } from '@/lib/pixel'
+import { readCheckoutDetails } from '@/lib/checkoutDetails'
 
 export default function TrackingScripts() {
   const [settings, setSettings] = useState<Settings | null>(null)
@@ -16,7 +18,12 @@ export default function TrackingScripts() {
   useEffect(() => {
     if (!settings) return
 
-    if (settings.meta_pixel_id) {
+    configurePixels(settings)
+
+    const saved = readCheckoutDetails()
+    if (saved.email || saved.phone) void setCustomerMatch({ email: saved.email, phone: saved.phone })
+
+    if (settings.meta_pixel_id && settings.meta_browser_push_method !== 'google_tag_manager') {
       const script = document.createElement('script')
       script.innerHTML = `
         !function(f,b,e,v,n,t,s)
@@ -33,36 +40,30 @@ export default function TrackingScripts() {
       document.head.appendChild(script)
     }
 
-    // One unified Google tag drives both GA4 (google_analytics_id) and Google Ads
-    // (google_ads_conversion_id). Load gtag.js once — with whichever id is present,
-    // preferring GA4 — then config each id. Google Ads' config auto-renders the
-    // Conversion Linker and catches gclid.
-    if (settings.google_analytics_id || settings.google_ads_conversion_id) {
-      const primaryId = settings.google_analytics_id || settings.google_ads_conversion_id
+    const googleTagId =
+      settings.google_browser_push_method === 'google_analytics_4'
+        ? settings.google_analytics_id
+        : settings.google_browser_push_method === 'google_ads_tag'
+          ? settings.google_ads_tag_id
+          : null
 
+    if (googleTagId) {
       const gtagScript = document.createElement('script')
       gtagScript.async = true
-      gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${primaryId}`
+      gtagScript.src = `https://www.googletagmanager.com/gtag/js?id=${googleTagId}`
       document.head.appendChild(gtagScript)
-
-      const configLines = [
-        settings.google_analytics_id && `gtag('config', '${settings.google_analytics_id}');`,
-        settings.google_ads_conversion_id && `gtag('config', '${settings.google_ads_conversion_id}');`,
-      ]
-        .filter(Boolean)
-        .join('\n        ')
 
       const gtagInit = document.createElement('script')
       gtagInit.innerHTML = `
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-        ${configLines}
+        gtag('config', '${googleTagId}');
       `
       document.head.appendChild(gtagInit)
     }
 
-    if (settings.tiktok_pixel_id) {
+    if (settings.tiktok_pixel_id && settings.tiktok_browser_push_method !== 'google_tag_manager') {
       const ttScript = document.createElement('script')
       ttScript.innerHTML = `
         !function (w, d, t) {

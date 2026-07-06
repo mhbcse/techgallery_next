@@ -191,14 +191,23 @@ export interface ValidationError {
   messages: string[]
 }
 
+export interface BrowserEventFlags {
+  meta: boolean
+  tiktok: boolean
+  google: boolean
+}
+
 export interface Settings {
   meta_pixel_id: string | null
   google_analytics_id: string | null
-  google_ads_conversion_id: string | null
+  google_ads_tag_id: string | null
   google_tag_manager_id: string | null
   tiktok_pixel_id: string | null
   microsoft_clarity_id: string | null
-  // Full CDN URL for the site favicon; "" when unset.
+  meta_browser_push_method: string | null
+  tiktok_browser_push_method: string | null
+  google_browser_push_method: string | null
+  browser_events: Record<string, BrowserEventFlags>
   favicon_url: string
 }
 
