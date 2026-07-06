@@ -6,6 +6,11 @@ import type { Settings } from '@/api/types'
 import { configurePixels, setCustomerMatch } from '@/lib/pixel'
 import { readCheckoutDetails } from '@/lib/checkoutDetails'
 
+// Guards against duplicate <script> injection: StrictMode double-mount in dev,
+// (main) layout remounts in prod. Module scope survives remounts; a full page
+// load resets it along with the injected tags.
+let scriptsInjected = false
+
 export default function TrackingScripts() {
   const [settings, setSettings] = useState<Settings | null>(null)
 
@@ -22,6 +27,9 @@ export default function TrackingScripts() {
 
     const saved = readCheckoutDetails()
     if (saved.email || saved.phone) void setCustomerMatch({ email: saved.email, phone: saved.phone })
+
+    if (scriptsInjected) return
+    scriptsInjected = true
 
     if (settings.meta_pixel_id && settings.meta_browser_push_method !== 'google_tag_manager') {
       const script = document.createElement('script')
