@@ -5,6 +5,7 @@ import CartPage from './CartPage'
 import { useCartStore } from '@/stores/cartStore'
 import { createOrder } from '@/api/orders'
 import { listDistricts, listAreas } from '@/api/locations'
+import { trackInitiateCheckout } from '@/lib/pixel'
 
 const { pushMock } = vi.hoisted(() => ({ pushMock: vi.fn() }))
 
@@ -13,6 +14,7 @@ vi.mock('@/api/orders', () => ({ createOrder: vi.fn() }))
 vi.mock('@/api/locations', () => ({ listDistricts: vi.fn(), listAreas: vi.fn() }))
 vi.mock('@/api/incompleteOrders', () => ({ captureIncompleteOrder: vi.fn() }))
 vi.mock('@/lib/tracking', () => ({ getStoredTracking: () => ({}) }))
+vi.mock('@/lib/pixel', () => ({ trackInitiateCheckout: vi.fn() }))
 vi.mock('react-hot-toast', () => {
   const fn = Object.assign(vi.fn(), { success: vi.fn(), error: vi.fn() })
   return { default: fn }
@@ -25,6 +27,7 @@ beforeEach(() => {
       {
         productId: '1',
         variantId: '10',
+        contentId: 'product-10-web-1',
         name: 'Aero-Glide Pro',
         variantName: 'Black',
         price: 100,
@@ -45,6 +48,22 @@ describe('CartPage checkout flow', () => {
     expect(screen.getByText('Aero-Glide Pro')).toBeInTheDocument()
     // subtotal = 100 * 2
     expect(screen.getAllByText(/৳\s?200/).length).toBeGreaterThan(0)
+  })
+
+  it('fires InitiateCheckout on the first field input, not on cart view, and only once', async () => {
+    const user = userEvent.setup()
+    render(<CartPage />)
+    await screen.findByRole('option', { name: 'Dhaka' })
+
+    // Viewing the cart (mount + hydration) must not signal checkout.
+    expect(trackInitiateCheckout).not.toHaveBeenCalled()
+
+    await user.type(screen.getByPlaceholderText('Full Name'), 'A')
+    expect(trackInitiateCheckout).toHaveBeenCalledTimes(1)
+
+    // Further edits in the same mount do not re-fire (per-mount short-circuit).
+    await user.type(screen.getByPlaceholderText(/Mobile Number/), '01712345678')
+    expect(trackInitiateCheckout).toHaveBeenCalledTimes(1)
   })
 
   it('blocks order placement until district and area are selected', async () => {

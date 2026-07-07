@@ -56,6 +56,21 @@ export function getSessionId(): string {
   return id
 }
 
+// Session-scoped one-shot guard. Returns true the first time it is called for `key`
+// this tab session, false thereafter. sessionStorage survives reload/SPA nav but
+// resets on a genuinely new session; keyed by session id.
+export function markOncePerSession(key: string): boolean {
+  if (typeof window === 'undefined') return false
+  const storageKey = `once:${key}:${getSessionId()}`
+  try {
+    if (sessionStorage.getItem(storageKey)) return false
+    sessionStorage.setItem(storageKey, '1')
+    return true
+  } catch {
+    return true // storage blocked (private mode): fail-open, don't break tracking
+  }
+}
+
 // Write URL params into the shared `_<param>` cookies and return the full attribution
 // object. Last-touch (matches the eshops_storefront standard): a campaigned visit
 // overwrites the stored value, so the most recent campaign wins. Referrer is kept

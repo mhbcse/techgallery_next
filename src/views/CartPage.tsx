@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
@@ -47,13 +47,14 @@ export default function CartPage() {
       .catch(() => {})
   }, [])
 
-  // Fire InitiateCheckout once the (hydrated) cart is known and non-empty.
+  // Fire InitiateCheckout on the shopper's first genuine checkout interaction (a real
+  // keystroke in a field, or picking district/area) — never on mount/view. The per-mount
+  // ref is a cheap short-circuit; the durable once-per-session dedup lives in
+  // trackInitiateCheckout, so reload / SPA revisit don't re-signal.
   const checkoutTracked = useRef(false)
-  useEffect(() => {
-    if (checkoutTracked.current || items.length === 0) return
-    const contentIds = items
-      .map((i) => i.contentId)
-      .filter((id): id is string => !!id)
+  const startCheckoutSignal = useCallback(() => {
+    if (checkoutTracked.current) return
+    const contentIds = items.map((i) => i.contentId).filter((id): id is string => !!id)
     if (contentIds.length === 0) return
     checkoutTracked.current = true
     trackInitiateCheckout({ contentIds, value: subtotal(), numItems: totalItems() })
@@ -72,7 +73,10 @@ export default function CartPage() {
     setAreaId('')
     setAreas([])
     setLocationError(false)
-    if (value) listAreas(value).then(setAreas).catch(() => {})
+    if (value) {
+      startCheckoutSignal()
+      listAreas(value).then(setAreas).catch(() => {})
+    }
   }
 
   const {
@@ -90,6 +94,16 @@ export default function CartPage() {
       customer_address: user?.address || '',
     },
   })
+
+  // First real keystroke in any checkout field = checkout start. `type === 'change'`
+  // is only set for genuine user input; the returning-customer restore below uses
+  // setValue (undefined type), so restoring saved details never triggers it.
+  useEffect(() => {
+    const sub = watch((_values, { type }) => {
+      if (type === 'change') startCheckoutSignal()
+    })
+    return () => sub.unsubscribe()
+  }, [watch, startCheckoutSignal])
 
   // The auth store persists with skipHydration and is rehydrated by a providers-level
   // effect, which runs AFTER this component's effects — so `user` is not trustworthy
@@ -479,6 +493,7 @@ export default function CartPage() {
                           locationTouched.current = true
                           setAreaId(e.target.value)
                           setLocationError(false)
+                          if (e.target.value) startCheckoutSignal()
                         }}
                         disabled={!districtId || areas.length === 0}
                         className={`${inputClass} disabled:opacity-50 ${locationError && !selectedArea ? 'ring-1 ring-red-400' : ''}`}

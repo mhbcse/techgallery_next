@@ -1,5 +1,5 @@
 import type { BrowserEventFlags, Settings } from '@/api/types'
-import { getStoredTracking } from './tracking'
+import { getStoredTracking, markOncePerSession } from './tracking'
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.techgallerybd.com'
 
@@ -249,6 +249,8 @@ export function trackInitiateCheckout({
   numItems: number
 }): void {
   if (contentIds.length === 0) return
+  // Fire at most once per session — reload / SPA revisit must not re-signal checkout.
+  if (!markOncePerSession('InitiateCheckout')) return
   const params = {
     content_ids: contentIds,
     content_type: CONTENT_TYPE,

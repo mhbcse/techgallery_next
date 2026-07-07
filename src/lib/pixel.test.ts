@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { configurePixels, setCustomerMatch, trackAddToCart, trackViewContent } from './pixel'
+import { configurePixels, setCustomerMatch, trackAddToCart, trackInitiateCheckout, trackViewContent } from './pixel'
 import type { Settings } from '@/api/types'
 
 function baseSettings(overrides: Partial<Settings>): Settings {
@@ -124,6 +124,30 @@ describe('pixel routing', () => {
     configurePixels(baseSettings({ meta_browser_push_method: 'native' }))
     await setCustomerMatch({ email: 'Buyer@Example.com', phone: '01711111111' })
     expect(window.fbq).toHaveBeenCalledWith('init', 'FB1', { em: 'buyer@example.com', ph: '8801711111111' })
+  })
+
+  it('fires InitiateCheckout once per session and suppresses repeats (reload / SPA revisit)', () => {
+    sessionStorage.clear()
+    configurePixels(baseSettings({ browser_events: { InitiateCheckout: { meta: true, tiktok: true, google: false } } }))
+
+    trackInitiateCheckout({ contentIds: ['p1-v1-web-1'], value: 100, numItems: 1 })
+    trackInitiateCheckout({ contentIds: ['p1-v1-web-1'], value: 100, numItems: 1 })
+
+    expect(window.fbq).toHaveBeenCalledTimes(1)
+    expect(window.ttq!.track).toHaveBeenCalledTimes(1)
+    expect(fetch).toHaveBeenCalledTimes(1)
+  })
+
+  it('re-fires InitiateCheckout in a genuinely new session', () => {
+    sessionStorage.clear()
+    configurePixels(baseSettings({ browser_events: { InitiateCheckout: { meta: true, tiktok: true, google: false } } }))
+
+    trackInitiateCheckout({ contentIds: ['p1-v1-web-1'], value: 100, numItems: 1 })
+    sessionStorage.clear() // new session/tab
+    trackInitiateCheckout({ contentIds: ['p1-v1-web-1'], value: 100, numItems: 1 })
+
+    expect(window.fbq).toHaveBeenCalledTimes(2)
+    expect(fetch).toHaveBeenCalledTimes(2)
   })
 
   it('hashes identity into ttq.identify and the GTM user_data', async () => {
