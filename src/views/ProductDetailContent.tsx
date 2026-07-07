@@ -11,6 +11,7 @@ import { formatCurrency } from '@/lib/formatCurrency'
 import { trackViewContent, trackAddToCart } from '@/lib/pixel'
 import QuantitySelector from '@/components/product/QuantitySelector'
 import ProductCard from '@/components/product/ProductCard'
+import ProductGallery from '@/components/product/ProductGallery'
 import Breadcrumb from '@/components/common/Breadcrumb'
 
 type Tab = 'description' | 'specs'
@@ -226,34 +227,12 @@ export default function ProductDetailContent({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Gallery */}
           <div className="lg:col-span-7">
-            <div className="flex flex-col-reverse md:flex-row gap-4">
-              {thumbnails.length > 0 && (
-                <div className="flex md:flex-col gap-3">
-                  {thumbnails.map((url) => (
-                    <button
-                      key={url}
-                      onClick={() => setMainImage(url)}
-                      className={`w-20 h-24 overflow-hidden flex-shrink-0 border ${
-                        mainImage === url ? 'border-2 border-secondary' : 'border-outline-variant'
-                      }`}
-                    >
-                      <img src={url} alt="" className="w-full h-full object-cover" />
-                    </button>
-                  ))}
-                </div>
-              )}
-              <div className="flex-1 relative">
-                <div className="aspect-[4/5] bg-surface-container industrial-grid overflow-hidden border border-outline-variant relative">
-                  <div className="absolute -top-px -left-px w-10 h-10 border-t-2 border-l-2 border-secondary z-10" />
-                  <div className="absolute -bottom-px -right-px w-10 h-10 border-b-2 border-r-2 border-secondary z-10" />
-                  <img
-                    src={mainImage || '/assets/logo-vertical-blue.png'}
-                    alt={product.name}
-                    className="w-full h-full object-contain p-6"
-                  />
-                </div>
-              </div>
-            </div>
+            <ProductGallery
+              images={thumbnails}
+              activeImage={mainImage}
+              onActiveImageChange={setMainImage}
+              alt={product.name}
+            />
           </div>
 
           {/* Info */}

@@ -8,6 +8,7 @@ import { useCartUIStore } from '@/stores/cartUIStore'
 import { formatCurrency } from '@/lib/formatCurrency'
 import { trackAddToCart, trackViewContent } from '@/lib/pixel'
 import QuantitySelector from '@/components/product/QuantitySelector'
+import ProductGallery from '@/components/product/ProductGallery'
 import Breadcrumb from '@/components/common/Breadcrumb'
 
 interface BundleDetailContentProps {
@@ -89,37 +90,18 @@ export default function BundleDetailContent({ bundle }: BundleDetailContentProps
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
         {/* Gallery */}
         <div className="lg:col-span-7">
-          <div className="flex flex-col-reverse md:flex-row gap-4">
-            {thumbnails.length > 0 && (
-              <div className="flex md:flex-col gap-3">
-                {thumbnails.slice(0, 4).map((url) => (
-                  <button
-                    key={url}
-                    onClick={() => setMainImage(url)}
-                    className={`w-20 h-24 overflow-hidden flex-shrink-0 border ${
-                      mainImage === url ? 'border-2 border-secondary' : 'border-outline-variant'
-                    }`}
-                  >
-                    <img src={url} alt="" className="w-full h-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            )}
-            <div className="flex-1 relative">
-              <div className="aspect-[4/5] bg-surface-container industrial-grid overflow-hidden border border-outline-variant relative">
-                <div className="absolute -top-px -left-px w-10 h-10 border-t-2 border-l-2 border-secondary z-10" />
-                <div className="absolute -bottom-px -right-px w-10 h-10 border-b-2 border-r-2 border-secondary z-10" />
-                <span className="absolute top-3 left-3 bg-primary text-white font-label-sm uppercase tracking-widest px-2 py-1 border border-outline-variant z-20">
-                  COMBAT KIT
-                </span>
-                <img
-                  src={mainImage || '/assets/logo-vertical-blue.png'}
-                  alt={bundle.name}
-                  className="w-full h-full object-contain p-6"
-                />
-              </div>
-            </div>
-          </div>
+          <ProductGallery
+            images={thumbnails}
+            activeImage={mainImage}
+            onActiveImageChange={setMainImage}
+            alt={bundle.name}
+            maxThumbnails={4}
+            badge={
+              <span className="absolute top-3 left-3 bg-primary text-white font-label-sm uppercase tracking-widest px-2 py-1 border border-outline-variant z-20">
+                COMBAT KIT
+              </span>
+            }
+          />
         </div>
 
         {/* Info */}
