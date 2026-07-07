@@ -111,13 +111,6 @@ export default async function HomePage() {
                   className="relative z-10 w-2/3 h-2/3 m-auto inset-0 absolute object-contain opacity-80"
                 />
               )}
-              <div className="absolute top-0 right-0 p-4 border-t-2 border-r-2 border-secondary bg-primary/40 backdrop-blur-sm z-20 font-label-sm text-label-sm text-secondary-fixed-dim">
-                <div className="flex flex-col gap-1">
-                  <span>POLLING: 8000HZ</span>
-                  <span>WEIGHT: 48G</span>
-                  <span>SENSOR: AG-V3</span>
-                </div>
-              </div>
             </div>
           </div>
         </div>
