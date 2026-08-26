@@ -1,7 +1,6 @@
 import type { BrowserEventFlags, Settings } from '@/api/types'
-import { getStoredTracking, markOncePerSession } from './tracking'
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.techgallerybd.com'
+import { API_BASE_URL } from '@/lib/constants'
+import { getStoredTracking, getVisitorId, markOncePerSession } from './tracking'
 
 declare global {
   interface Window {
@@ -41,6 +40,25 @@ interface UserData {
 
 let matchUserData: UserData | null = null
 
+// Meta and TikTok both replace a pixel's identity on every init/identify call, so the fields
+// accumulate here and every re-init sends the union — a later visitor id must not drop the
+// email/phone an earlier customer match set, or the reverse.
+const metaAdvancedMatch: Record<string, string> = {}
+const tiktokIdentity: Record<string, string> = {}
+
+function applyMetaAdvancedMatch(): void {
+  if (!Object.keys(metaAdvancedMatch).length) return
+  if (config?.meta === 'google_tag_manager' || !config?.metaPixelId) return
+  if (typeof window === 'undefined' || typeof window.fbq !== 'function') return
+  window.fbq('init', config.metaPixelId, { ...metaAdvancedMatch })
+}
+
+function applyTiktokIdentity(): void {
+  if (!Object.keys(tiktokIdentity).length) return
+  if (typeof window === 'undefined' || typeof window.ttq?.identify !== 'function') return
+  window.ttq.identify({ ...tiktokIdentity })
+}
+
 export function configurePixels(settings: Settings): void {
   config = {
     meta: settings.meta_browser_push_method,
@@ -67,22 +85,30 @@ function toE164(phone: string): string {
   return `+${p}`
 }
 
+// The stable per-browser visitor id is Meta's and TikTok's external_id. Unlike the customer
+// match below it needs no known email or phone, so it covers organic visitors too — on most
+// events it is the only identity the platforms get.
+export async function setVisitorMatch(): Promise<void> {
+  const visitorId = getVisitorId()
+  if (!visitorId) return
+
+  const hash = await sha256Hex(visitorId)
+  if (!hash) return
+
+  metaAdvancedMatch.external_id = hash
+  tiktokIdentity.external_id = hash
+  applyMetaAdvancedMatch()
+  applyTiktokIdentity()
+}
+
 export async function setCustomerMatch({ email, phone }: { email?: string | null; phone?: string | null }): Promise<void> {
   const em = (email || '').trim().toLowerCase()
   const e164 = phone ? toE164(phone) : ''
   if (!em && !e164) return
 
-  if (
-    config?.meta !== 'google_tag_manager' &&
-    config?.metaPixelId &&
-    typeof window !== 'undefined' &&
-    typeof window.fbq === 'function'
-  ) {
-    const advanced: Record<string, string> = {}
-    if (em) advanced.em = em
-    if (e164) advanced.ph = e164.replace('+', '')
-    window.fbq('init', config.metaPixelId, advanced)
-  }
+  if (em) metaAdvancedMatch.em = em
+  if (e164) metaAdvancedMatch.ph = e164.replace('+', '')
+  applyMetaAdvancedMatch()
 
   const [emailHash, phoneHash] = await Promise.all([sha256Hex(em), sha256Hex(e164)])
   const ud: UserData = {}
@@ -90,12 +116,9 @@ export async function setCustomerMatch({ email, phone }: { email?: string | null
   if (phoneHash) ud.sha256_phone_number = phoneHash
   matchUserData = Object.keys(ud).length ? ud : null
 
-  if (matchUserData && typeof window !== 'undefined' && typeof window.ttq?.identify === 'function') {
-    const identity: Record<string, string> = {}
-    if (emailHash) identity.email = emailHash
-    if (phoneHash) identity.phone_number = phoneHash
-    window.ttq.identify(identity)
-  }
+  if (emailHash) tiktokIdentity.email = emailHash
+  if (phoneHash) tiktokIdentity.phone_number = phoneHash
+  applyTiktokIdentity()
 }
 
 function enabled(name: string, platform: Platform): boolean {

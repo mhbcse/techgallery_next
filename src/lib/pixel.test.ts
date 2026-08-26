@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { configurePixels, setCustomerMatch, trackAddToCart, trackInitiateCheckout, trackViewContent } from './pixel'
+import { configurePixels, setCustomerMatch, setVisitorMatch, trackAddToCart, trackInitiateCheckout, trackViewContent } from './pixel'
 import type { Settings } from '@/api/types'
 
 function baseSettings(overrides: Partial<Settings>): Settings {
@@ -148,6 +148,38 @@ describe('pixel routing', () => {
 
     expect(window.fbq).toHaveBeenCalledTimes(2)
     expect(fetch).toHaveBeenCalledTimes(2)
+  })
+
+  it('sends the hashed visitor id as external_id to Meta and TikTok, with no customer known', async () => {
+    localStorage.clear()
+    configurePixels(baseSettings({ meta_browser_push_method: 'native' }))
+
+    await setVisitorMatch()
+
+    const visitorId = localStorage.getItem('attr-visitor-id')!
+    expect(visitorId).toBeTruthy()
+    expect(window.fbq).toHaveBeenCalledWith('init', 'FB1', expect.objectContaining({ external_id: expect.any(String) }))
+    expect(window.ttq!.identify).toHaveBeenCalledWith(expect.objectContaining({ external_id: expect.any(String) }))
+  })
+
+  it('keeps the customer match and the visitor id together across re-inits', async () => {
+    configurePixels(baseSettings({ meta_browser_push_method: 'native' }))
+
+    await setCustomerMatch({ email: 'buyer@example.com', phone: '01711111111' })
+    await setVisitorMatch()
+
+    const lastInit = (window.fbq as ReturnType<typeof vi.fn>).mock.calls.filter((c) => c[0] === 'init').pop()!
+    expect(lastInit[2]).toMatchObject({
+      em: 'buyer@example.com',
+      ph: '8801711111111',
+      external_id: expect.any(String),
+    })
+    const lastIdentify = (window.ttq!.identify as ReturnType<typeof vi.fn>).mock.calls.pop()!
+    expect(lastIdentify[0]).toMatchObject({
+      email: expect.any(String),
+      phone_number: expect.any(String),
+      external_id: expect.any(String),
+    })
   })
 
   it('hashes identity into ttq.identify and the GTM user_data', async () => {

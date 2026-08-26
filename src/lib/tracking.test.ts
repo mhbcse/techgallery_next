@@ -39,6 +39,12 @@ describe('captureAttribution', () => {
     expect(readCookie('_fbclid')).toBe('xyz')
   })
 
+  it('stamps the observation time alongside a captured fbclid', () => {
+    setLocation('?fbclid=xyz')
+    captureAttribution()
+    expect(Number(readCookie('_fbclid_at'))).toBeGreaterThan(0)
+  })
+
   it('is last-touch: a new campaigned visit overwrites the stored value', () => {
     setCookie('_utm_source', 'original', 3600)
     setLocation('?utm_source=newvalue')
@@ -61,5 +67,37 @@ describe('getStoredTracking', () => {
     expect(t.fbc).toBe('fbc.1')
     expect(t.visitor_id).toBeTruthy()
     expect(t.session_id).toBeTruthy()
+  })
+
+  it('synthesizes fbc from the click id when Meta has not written the cookie yet', () => {
+    setLocation('?fbclid=click1')
+    captureAttribution()
+    setCookie('_fbclid_at', '1756000000000', 3600)
+
+    const t = getStoredTracking()
+    expect(t.fbc).toBe('fb.1.1756000000000.click1')
+    expect(t.fbclid_at).toBe(1756000000000)
+  })
+
+  it('prefers the pixel-written cookie over a synthesized one', () => {
+    setLocation('?fbclid=click1')
+    captureAttribution()
+    setCookie('_fbc', 'fb.1.999.real', 3600)
+
+    expect(getStoredTracking().fbc).toBe('fb.1.999.real')
+  })
+
+  it('sends no fbc when the click id has no observation time, rather than one per read', () => {
+    setLocation('')
+    setCookie('_fbclid', 'click1', 3600)
+
+    const t = getStoredTracking()
+    expect(t.fbc).toBeUndefined()
+    expect(t.fbclid_at).toBeUndefined()
+  })
+
+  it('omits fbc entirely for a visitor who never clicked an ad', () => {
+    setLocation('')
+    expect(getStoredTracking().fbc).toBeUndefined()
   })
 })

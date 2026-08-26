@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { getSettings } from '@/api/settings'
 import type { Settings } from '@/api/types'
-import { configurePixels, setCustomerMatch } from '@/lib/pixel'
+import { configurePixels, setCustomerMatch, setVisitorMatch } from '@/lib/pixel'
 import { readCheckoutDetails } from '@/lib/checkoutDetails'
 
 // Guards against duplicate <script> injection: StrictMode double-mount in dev,
@@ -27,6 +27,9 @@ export default function TrackingScripts() {
 
     const saved = readCheckoutDetails()
     if (saved.email || saved.phone) void setCustomerMatch({ email: saved.email, phone: saved.phone })
+    // Both awaits their SHA-256 before touching fbq/ttq, so the tags injected below this line
+    // are in place by the time either one fires.
+    void setVisitorMatch()
 
     if (scriptsInjected) return
     scriptsInjected = true

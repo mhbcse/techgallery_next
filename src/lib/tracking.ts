@@ -8,12 +8,17 @@ import { readCookie, setCookie } from './cookies'
 
 const SESSION_KEY = 'attr-session-id'
 const VISITOR_KEY = 'attr-visitor-id'
-// Ad-attribution window for the `_<param>` cookies — matches the storefront and the 7-day
-// click window of the Google conversion action / Meta default.
-const ATTRIBUTION_MAX_AGE = 7 * 24 * 60 * 60
+// Lifetime of the `_<param>` cookies — deliberately longer than any platform's attribution
+// window so a late conversion still carries its click id; the platform ignores one that falls
+// outside its own window. 90 days matches Meta's _fbc/_fbp, Google's _gcl_aw and TikTok's _ttp.
+// Safari's ITP caps anything written via document.cookie to 7 days regardless.
+const ATTRIBUTION_MAX_AGE = 90 * 24 * 60 * 60
+// Epoch ms when a `fbclid` was first seen, stamped alongside `_fbclid`.
+const FBCLID_AT_KEY = '_fbclid_at'
+const FBC_SUBDOMAIN_INDEX = 1
 
 // URL params captured into first-party `_<param>` cookies (names match the storefront).
-const URL_PARAM_KEYS: (keyof OrderTracking)[] = [
+const URL_PARAM_KEYS = [
   'utm_source',
   'utm_medium',
   'utm_campaign',
@@ -28,7 +33,7 @@ const URL_PARAM_KEYS: (keyof OrderTracking)[] = [
   'ad_id',
   'ad_group_id',
   'campaign_id',
-]
+] as const satisfies readonly (keyof OrderTracking)[]
 
 function randomId(): string {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) return crypto.randomUUID()
@@ -82,7 +87,9 @@ export function captureAttribution(): OrderTracking {
   const params = new URLSearchParams(window.location.search)
   for (const key of URL_PARAM_KEYS) {
     const value = params.get(key)
-    if (value) setCookie(`_${key}`, value, ATTRIBUTION_MAX_AGE)
+    if (!value) continue
+    setCookie(`_${key}`, value, ATTRIBUTION_MAX_AGE)
+    if (key === 'fbclid') setCookie(FBCLID_AT_KEY, String(Date.now()), ATTRIBUTION_MAX_AGE)
   }
 
   if (document.referrer && !readCookie('_referrer')) setCookie('_referrer', document.referrer, ATTRIBUTION_MAX_AGE)
@@ -102,13 +109,16 @@ export function getStoredTracking(): OrderTracking {
   const referrer = readCookie('_referrer')
   if (referrer) tracking.referrer = referrer
 
-  // _fbp / _fbc are set by Meta's pixel; _ttp by TikTok's. The cookies are the source of truth.
+  // _fbp / _fbc are set by Meta's pixel; _ttp by TikTok's. The cookies are the source of truth,
+  // except that _fbc is rebuilt from the click id when the pixel has not written it yet.
   const fbp = readCookie('_fbp')
-  const fbc = readCookie('_fbc')
+  const fbclidAt = readCookie(FBCLID_AT_KEY)
+  const fbc = readCookie('_fbc') || synthesizeFbc(tracking.fbclid, fbclidAt)
   const ttp = readCookie('_ttp')
   if (fbp) tracking.fbp = fbp
   if (fbc) tracking.fbc = fbc
   if (ttp) tracking.ttp = ttp
+  if (fbclidAt) tracking.fbclid_at = Number(fbclidAt)
 
   // GA4 sets _ga (client id) and _ga_<stream> (session id); parse both for GA4 MP attribution.
   const gaClientId = parseGaClientId(readCookie('_ga'))
@@ -120,6 +130,14 @@ export function getStoredTracking(): OrderTracking {
   tracking.visitor_id = getVisitorId()
 
   return tracking
+}
+
+// Meta's pixel writes _fbc on page load, so an event firing in the same instant reads the click
+// id before the cookie exists. The timestamp must be when the click was first observed, never
+// read time: a fresh one per read mints a different identifier for the same click.
+function synthesizeFbc(fbclid: string | undefined, clickedAtMs: string | undefined): string {
+  if (!fbclid || !clickedAtMs) return ''
+  return `fb.${FBC_SUBDOMAIN_INDEX}.${clickedAtMs}.${fbclid}`
 }
 
 function parseGaClientId(value: string | undefined): string {

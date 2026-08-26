@@ -268,6 +268,8 @@ export interface OrderTracking {
   utm_term?: string
   utm_id?: string
   fbclid?: string
+  // Epoch ms when the fbclid was first seen — Meta's fbc must carry click time, not read time.
+  fbclid_at?: number
   fbc?: string
   fbp?: string
   gclid?: string
