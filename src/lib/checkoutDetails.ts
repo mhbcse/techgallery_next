@@ -9,6 +9,8 @@ export interface SavedCheckoutDetails {
   name?: string
   phone?: string
   address?: string
+  // No longer collected at checkout; still read for Meta/TikTok advanced matching when a
+  // returning shopper entered one under an earlier version of the form.
   email?: string
   districtId?: string
   areaId?: string

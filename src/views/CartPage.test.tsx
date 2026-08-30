@@ -66,7 +66,7 @@ describe('CartPage checkout flow', () => {
     expect(trackInitiateCheckout).toHaveBeenCalledTimes(1)
   })
 
-  it('blocks order placement until district and area are selected', async () => {
+  it('blocks order placement until a district is selected', async () => {
     const user = userEvent.setup()
     render(<CartPage />)
     await screen.findByRole('option', { name: 'Dhaka' })
@@ -75,9 +75,9 @@ describe('CartPage checkout flow', () => {
     await user.type(screen.getByPlaceholderText(/Mobile Number/), '01712345678')
     await user.type(screen.getByPlaceholderText(/House no/), '123 Street, Dhaka')
 
-    await user.click(screen.getByRole('button', { name: /Confirm Order/i }))
+    await user.click(screen.getAllByRole('button', { name: /Place Order/i })[0])
 
-    await screen.findByText(/District and area are required/i)
+    await screen.findByText(/District is required/i)
     expect(createOrder).not.toHaveBeenCalled()
   })
 
@@ -92,9 +92,9 @@ describe('CartPage checkout flow', () => {
 
     await user.selectOptions(screen.getByDisplayValue('Select District *'), '1')
     await screen.findByRole('option', { name: 'Banasree' })
-    await user.selectOptions(screen.getByDisplayValue('Select Area *'), '10')
+    await user.selectOptions(screen.getByDisplayValue('Select Area (optional)'), '10')
 
-    await user.click(screen.getByRole('button', { name: /Confirm Order/i }))
+    await user.click(screen.getAllByRole('button', { name: /Place Order/i })[0])
 
     await waitFor(() => expect(createOrder).toHaveBeenCalledTimes(1))
 
@@ -113,5 +113,36 @@ describe('CartPage checkout flow', () => {
 
     await waitFor(() => expect(useCartStore.getState().items).toHaveLength(0))
     expect(pushMock).toHaveBeenCalledWith('/')
+  })
+
+  it('places an order without an area, falling back to the district fee', async () => {
+    const user = userEvent.setup()
+    render(<CartPage />)
+    await screen.findByRole('option', { name: 'Dhaka' })
+
+    await user.type(screen.getByPlaceholderText('Full Name'), 'Test User')
+    await user.type(screen.getByPlaceholderText(/Mobile Number/), '01712345678')
+    await user.type(screen.getByPlaceholderText(/House no/), '123 Street, Dhaka')
+    await user.selectOptions(screen.getByDisplayValue('Select District *'), '1')
+
+    await user.click(screen.getAllByRole('button', { name: /Place Order/i })[0])
+
+    await waitFor(() => expect(createOrder).toHaveBeenCalledTimes(1))
+    const payload = vi.mocked(createOrder).mock.calls[0][0]
+    expect(payload.shipping_charge).toBe(60)
+    expect(payload.order).toMatchObject({ customer_district: 'Dhaka' })
+    expect(payload.order.customer_area).toBeUndefined()
+  })
+
+  it('does not offer a promo code field', () => {
+    render(<CartPage />)
+    expect(screen.queryByPlaceholderText('CODE')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Promo Code/i)).not.toBeInTheDocument()
+  })
+
+  it('does not ask for an email or a password', () => {
+    render(<CartPage />)
+    expect(screen.queryByPlaceholderText(/Email/i)).not.toBeInTheDocument()
+    expect(screen.queryByPlaceholderText(/password/i)).not.toBeInTheDocument()
   })
 })

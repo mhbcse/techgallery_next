@@ -28,9 +28,8 @@ export default function CartPage() {
   useTitle('Checkout - Tech Gallery')
   const router = useRouter()
   const { items, removeItem, updateQuantity, clearCart, totalItems, subtotal } = useCartStore()
-  const { user, register: registerUser } = useAuthStore()
+  const { user } = useAuthStore()
 
-  const [promoCode, setPromoCode] = useState('')
   const [placing, setPlacing] = useState(false)
 
   // Delivery location → drives the displayed fee. The server recomputes the
@@ -120,12 +119,11 @@ export default function CartPage() {
   // Restore the last-entered checkout details for returning customers, after auth
   // hydration. The profile is re-asserted first (hard loads compute defaultValues
   // before `user` exists) so it always wins over stored guest details. A logged-in
-  // user with an address on file never gets stored details merged in at all, and the
-  // email field — hidden while logged in — restores for guests only.
+  // user with an address on file never gets stored details merged in at all.
   useEffect(() => {
     if (!authHydrated) return
     const profile = useAuthStore.getState().user
-    const fillIfEmpty = (field: 'customer_name' | 'customer_phone' | 'customer_address' | 'customer_email', value?: string | null) => {
+    const fillIfEmpty = (field: 'customer_name' | 'customer_phone' | 'customer_address', value?: string | null) => {
       if (value && !getValues(field)) setValue(field, value)
     }
     fillIfEmpty('customer_name', profile?.name)
@@ -137,7 +135,6 @@ export default function CartPage() {
     fillIfEmpty('customer_name', saved.name)
     fillIfEmpty('customer_phone', saved.phone)
     fillIfEmpty('customer_address', saved.address)
-    if (!profile) fillIfEmpty('customer_email', saved.email)
     if (saved.districtId) {
       setDistrictId(saved.districtId)
       listAreas(saved.districtId)
@@ -158,7 +155,6 @@ export default function CartPage() {
       name: getValues('customer_name'),
       phone: getValues('customer_phone'),
       address: getValues('customer_address'),
-      email: getValues('customer_email'),
       districtId,
       areaId,
     })
@@ -226,44 +222,23 @@ export default function CartPage() {
       return
     }
 
-    // Require ids that resolve to actual options — a restored id whose district/area
-    // no longer exists is truthy but shows the placeholder, and must not pass.
-    if (!selectedDistrict || !selectedArea) {
+    // Require an id that resolves to an actual option — a restored id whose district no
+    // longer exists is truthy but shows the placeholder, and must not pass. Area is
+    // optional; without one the shipping fee falls back to the district's.
+    if (!selectedDistrict) {
       setLocationError(true)
-      toast.error('Please select your district and area')
+      toast.error('Please select your district')
       return
     }
 
     setPlacing(true)
     try {
-      // Optional account creation. Must happen BEFORE the order: placing an order
-      // auto-creates a customer keyed on phone, so a later register would collide.
-      // Registering first logs the shopper in, and the order then links to that account.
-      let createdAccount = false
-      if (!user && data.customer_password) {
-        try {
-          await registerUser({
-            name: data.customer_name,
-            phone: data.customer_phone,
-            email: data.customer_email!, // guaranteed present by the schema refine
-            password: data.customer_password,
-            address: data.customer_address,
-          })
-          createdAccount = true
-        } catch (err: unknown) {
-          // Don't block checkout — place the order as a guest and nudge to log in.
-          const body = (err as { response?: { data?: { messages?: string[]; message?: string } } }).response?.data
-          toast(body?.messages?.[0] || 'Could not create an account; placing your order as a guest.', { icon: 'ℹ️' })
-        }
-      }
-
       await createOrder({
         order: {
           customer_name: data.customer_name,
           customer_phone: data.customer_phone,
           customer_address: data.customer_address,
-          customer_email: data.customer_email || undefined,
-          customer_district: selectedDistrict?.name,
+          customer_district: selectedDistrict.name,
           customer_area: selectedArea?.name,
         },
         order_items: toOrderItems(items),
@@ -276,7 +251,7 @@ export default function CartPage() {
       clearCart()
       toast.success('Order placed! We’ll confirm it with you shortly.')
 
-      if (user || createdAccount) router.push('/account/orders')
+      if (user) router.push('/account/orders')
       else router.push('/')
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Failed to place order. Please try again.'
@@ -307,15 +282,15 @@ export default function CartPage() {
   }
 
   return (
-    <div className="max-w-container-max mx-auto px-margin-lg py-8">
+    <div className="max-w-container-max mx-auto px-margin-lg py-8 pb-28 lg:pb-8">
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Cart items */}
         <div className="flex-1 space-y-6">
           <div className="flex items-center justify-between border-b border-outline-variant pb-4">
             <h1 className="font-headline-lg text-headline-lg font-black uppercase">
-              Loadout{' '}
+              Your Cart{' '}
               <span className="text-outline font-normal text-headline-lg-mobile">
-                ({totalItems()} {totalItems() === 1 ? 'unit' : 'units'})
+                ({totalItems()} {totalItems() === 1 ? 'item' : 'items'})
               </span>
             </h1>
             <button
@@ -376,45 +351,18 @@ export default function CartPage() {
             ))}
           </div>
 
-          {/* Promo code */}
-          <div className="bg-secondary/5 border border-secondary/20 p-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <span className="material-symbols-outlined text-secondary">local_offer</span>
-            <div className="flex-1">
-              <h4 className="font-label-md text-label-md font-bold uppercase">Have a Promo Code?</h4>
-              <p className="font-label-sm text-label-sm text-on-surface-variant">Apply your access code for extra savings.</p>
-            </div>
-            <div className="flex gap-2 w-full sm:w-auto">
-              <input
-                type="text"
-                value={promoCode}
-                onChange={(e) => setPromoCode(e.target.value)}
-                placeholder="CODE"
-                className="bg-white border border-outline-variant text-label-md font-label-md px-3 py-2 w-32 focus:ring-1 focus:ring-secondary outline-none"
-              />
-              <button
-                onClick={handleApplyPromo}
-                className="bg-primary text-white px-4 py-2 font-label-md text-label-md uppercase tracking-wider hover:bg-secondary transition-colors"
-              >
-                Apply
-              </button>
-            </div>
-          </div>
         </div>
 
         {/* Checkout sidebar */}
         <div className="lg:w-[420px] space-y-6">
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form id="checkout-form" onSubmit={handleSubmit(onSubmit)}>
             <div className="bg-white border border-outline-variant overflow-hidden sticky top-24">
-              <div className="bg-primary text-white px-6 py-4">
-                <h2 className="font-label-md text-label-md uppercase tracking-[0.2em]">Deployment Manifest</h2>
-              </div>
-
               <div className="p-6 space-y-6">
                 {/* Shipping */}
                 <div className="space-y-4">
                   <h2 className="font-label-md text-label-md font-bold uppercase tracking-wider flex items-center gap-2">
                     <span className="material-symbols-outlined text-secondary">local_shipping</span>
-                    Shipping Address
+                    Delivery Details
                   </h2>
                   <div className="grid grid-cols-1 gap-3">
                     <div>
@@ -448,34 +396,6 @@ export default function CartPage() {
                       />
                       {errors.customer_address && <p className="mt-1 text-xs text-red-500">{errors.customer_address.message}</p>}
                     </div>
-                    {!user && (
-                      <>
-                        <div>
-                          <input
-                            type="email"
-                            placeholder="Email (optional)"
-                            className={`${inputClass} ${errors.customer_email ? 'ring-1 ring-red-400' : ''}`}
-                            {...register('customer_email')}
-                          />
-                          {errors.customer_email && <p className="mt-1 text-xs text-red-500">{errors.customer_email.message}</p>}
-                        </div>
-                        <div>
-                          <input
-                            type="password"
-                            placeholder="Create a password (optional)"
-                            className={`${inputClass} ${errors.customer_password ? 'ring-1 ring-red-400' : ''}`}
-                            {...register('customer_password')}
-                          />
-                          {errors.customer_password ? (
-                            <p className="mt-1 text-xs text-red-500">{errors.customer_password.message}</p>
-                          ) : (
-                            <p className="mt-1 text-xs text-on-surface-variant">
-                              Set a password to track your orders faster next time (needs an email).
-                            </p>
-                          )}
-                        </div>
-                      </>
-                    )}
                     <div className="grid grid-cols-2 gap-3">
                       <select
                         value={districtId}
@@ -496,15 +416,15 @@ export default function CartPage() {
                           if (e.target.value) startCheckoutSignal()
                         }}
                         disabled={!districtId || areas.length === 0}
-                        className={`${inputClass} disabled:opacity-50 ${locationError && !selectedArea ? 'ring-1 ring-red-400' : ''}`}
+                        className={`${inputClass} disabled:opacity-50`}
                       >
-                        <option value="">Select Area *</option>
+                        <option value="">Select Area (optional)</option>
                         {areas.map((a) => (
                           <option key={a.id} value={a.id}>{a.name}</option>
                         ))}
                       </select>
                     </div>
-                    {locationError && <p className="text-xs text-red-500">District and area are required</p>}
+                    {locationError && <p className="text-xs text-red-500">District is required</p>}
                   </div>
                 </div>
 
@@ -525,7 +445,7 @@ export default function CartPage() {
                 {/* Summary */}
                 <div className="pt-6 border-t border-outline-variant space-y-3 font-body-sm text-body-sm">
                   <div className="flex justify-between text-on-surface-variant">
-                    <span>Subtotal ({totalItems()} units)</span>
+                    <span>Subtotal ({totalItems()} {totalItems() === 1 ? 'item' : 'items'})</span>
                     <span>{formatCurrency(cartSubtotal)}</span>
                   </div>
                   <div className="flex justify-between text-on-surface-variant">
@@ -552,7 +472,7 @@ export default function CartPage() {
                   className="w-full bg-primary text-white py-4 font-label-md text-label-md uppercase tracking-widest hover:bg-secondary transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {placing && <span className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />}
-                  Confirm Order
+                  Place Order
                   <span className="material-symbols-outlined">arrow_forward</span>
                 </button>
               </div>
@@ -579,6 +499,23 @@ export default function CartPage() {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Submitted by id so the bar can sit outside the form. */}
+      <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white border-t border-outline-variant px-4 py-3 flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <p className="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant">Total</p>
+          <p className="font-bold text-lg text-secondary break-words">{formatCurrency(total)}</p>
+        </div>
+        <button
+          type="submit"
+          form="checkout-form"
+          disabled={placing}
+          className="bg-primary text-white px-6 py-3 font-label-md text-label-md uppercase tracking-widest hover:bg-secondary transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {placing && <span className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent" />}
+          Place Order
+        </button>
       </div>
     </div>
   )
