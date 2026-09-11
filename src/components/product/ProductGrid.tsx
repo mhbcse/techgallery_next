@@ -20,7 +20,7 @@ export default function ProductGrid({ products, loading }: ProductGridProps) {
     return (
       <div className="text-center py-20 border border-outline-variant bg-surface-container-lowest">
         <span className="material-symbols-outlined text-5xl text-outline-variant mb-4">inventory_2</span>
-        <p className="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">No hardware found</p>
+        <p className="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">No products found</p>
       </div>
     )
   }

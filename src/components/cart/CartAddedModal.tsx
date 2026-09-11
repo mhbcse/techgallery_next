@@ -23,7 +23,7 @@ export default function CartAddedModal() {
   // Quick-add: fetch the product's default variant and drop it straight into the cart.
   const quickAdd = async (product: Product) => {
     if (!product.slug) {
-      toast.error('This unit is unavailable')
+      toast.error('This product is unavailable')
       return
     }
     setAddingId(product.id)
@@ -31,7 +31,7 @@ export default function CartAddedModal() {
       const detail = await getProduct(product.slug)
       const variant = detail.variants.find((v) => v.is_default) || detail.variants[0]
       if (!variant) {
-        toast.error('This unit is unavailable')
+        toast.error('This product is unavailable')
         return
       }
       addItem({
@@ -45,9 +45,9 @@ export default function CartAddedModal() {
         imageUrl: variant.image_url || product.thumbnail_url || product.photo_url,
       })
       trackAddToCart({ contentId: variant.content_id, value: Number(variant.price), quantity: 1 })
-      toast.success('Added to loadout')
+      toast.success('Added to cart')
     } catch {
-      toast.error('Could not add this unit')
+      toast.error('Could not add this product')
     } finally {
       setAddingId(null)
     }
@@ -66,7 +66,7 @@ export default function CartAddedModal() {
         <div className="flex items-center justify-between bg-primary text-white px-6 py-4">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-secondary">check_circle</span>
-            <span className="font-label-md text-label-md uppercase tracking-[0.2em]">Added To Loadout</span>
+            <span className="font-label-md text-label-md uppercase tracking-[0.2em]">Added to Cart</span>
           </div>
           <button onClick={close} className="hover:text-secondary transition-colors">
             <span className="material-symbols-outlined">close</span>

@@ -194,7 +194,7 @@ export default function ProductDetailContent({
         }
     addItem(cartItem)
     trackAddToCart({ contentId: selectedVariant.content_id, value: cartItem.price, quantity })
-    toast.success('Added to loadout')
+    toast.success('Added to cart')
     openCartAdded(cartItem, relatedProducts)
   }
 
@@ -424,7 +424,7 @@ export default function ProductDetailContent({
                 className="flex-1 flex items-center justify-center gap-2 bg-primary text-white font-label-md text-label-md uppercase tracking-widest py-4 hover:bg-secondary active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span className="material-symbols-outlined text-lg">shopping_cart</span>
-                {isBackorder ? 'Available for order' : isPreorder ? 'Pre-order' : 'Add To Loadout'}
+                {isBackorder ? 'Available for order' : isPreorder ? 'Pre-order' : 'Add to Cart'}
               </button>
               <button
                 onClick={toggleWishlist}
@@ -478,13 +478,13 @@ export default function ProductDetailContent({
               (product.description ? (
                 <div className={richTextClass} dangerouslySetInnerHTML={{ __html: product.description }} />
               ) : (
-                <p className="text-outline italic">No description available for this unit.</p>
+                <p className="text-outline italic">No description available for this product.</p>
               ))}
             {activeTab === 'specs' &&
               (product.specs ? (
                 <div className={richTextClass} dangerouslySetInnerHTML={{ __html: product.specs }} />
               ) : (
-                <p className="text-outline italic">No specifications available for this unit.</p>
+                <p className="text-outline italic">No specifications available for this product.</p>
               ))}
           </div>
         </div>
@@ -492,7 +492,7 @@ export default function ProductDetailContent({
         {/* Related */}
         {relatedProducts.length > 0 && (
           <div className="mt-16 mb-8">
-            <h2 className="font-headline-lg text-headline-lg-mobile font-black uppercase mb-6">Related Hardware</h2>
+            <h2 className="font-headline-lg text-headline-lg-mobile font-black uppercase mb-6">Related Products</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {relatedProducts.map((p) => (
                 <ProductCard key={p.id} product={p} />
@@ -515,7 +515,7 @@ export default function ProductDetailContent({
           disabled={!canOrder}
           className="flex-1 bg-primary text-white font-label-md text-label-md uppercase tracking-widest py-3 hover:bg-secondary active:scale-95 transition-all disabled:opacity-50"
         >
-          {isBackorder ? 'Available for order' : isPreorder ? 'Pre-order' : 'Add To Loadout'} — {formatCurrency(selectedOffer ? selectedOffer.price : currentPrice)}
+          {isBackorder ? 'Available for order' : isPreorder ? 'Pre-order' : 'Add to Cart'} — {formatCurrency(selectedOffer ? selectedOffer.price : currentPrice)}
         </button>
       </div>
     </>

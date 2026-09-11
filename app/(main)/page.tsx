@@ -15,17 +15,17 @@ export const metadata: Metadata = {
 
 const specs = [
   {
-    label: 'Global Logistics',
+    label: 'Shipping',
     title: '24H DISPATCH',
     body: 'All orders prioritized through our central tech hub for rapid deployment.',
   },
   {
-    label: 'Support Protocol',
+    label: 'Support',
     title: 'BRAND WARRANTY',
     body: 'Authentic products backed by the manufacturer\'s warranty where applicable.',
   },
   {
-    label: 'Encryption',
+    label: 'Payment',
     title: 'SECURE CHECKOUT',
     body: '256-bit military grade encryption for all transactional data packets.',
   },
@@ -51,7 +51,7 @@ export default async function HomePage() {
   }
 
   const feature = products[0]
-  // The Command Center large tile shows a different product than the hero banner; fall
+  // The trending tile shows a different product than the hero banner; fall
   // back to the hero only when the catalog has a single product.
   const trending = products[1] ?? feature
   // Interleave bundles into the secondary cards, keeping the grid tidy at 4 tiles.
@@ -82,13 +82,13 @@ export default async function HomePage() {
                 href={feature?.slug ? `/products/${feature.slug}` : '/shop'}
                 className="bg-secondary text-white font-label-md text-label-md px-8 py-4 uppercase tracking-widest hover:brightness-110 active:translate-y-1 transition-all border border-secondary"
               >
-                Initialize Purchase
+                Buy Now
               </Link>
               <Link
                 href="/shop"
                 className="bg-transparent text-white font-label-md text-label-md px-8 py-4 uppercase tracking-widest border border-outline hover:bg-white/10 transition-all"
               >
-                Browse Armory
+                Shop All
               </Link>
             </div>
           </div>
@@ -119,19 +119,19 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Command Center: Trending Hardware */}
+      {/* Trending products */}
       <section className="py-24 bg-surface-container-low border-t border-outline-variant">
         <div className="max-w-container-max mx-auto px-margin-lg">
           <div className="flex justify-between items-end mb-12">
             <div>
-              <h2 className="font-headline-lg text-headline-lg font-black tracking-tight mb-2">COMMAND CENTER</h2>
+              <h2 className="font-headline-lg text-headline-lg font-black tracking-tight mb-2">TRENDING NOW</h2>
               <div className="h-1 w-24 bg-secondary" />
             </div>
             <Link
               href="/shop"
               className="font-label-md text-label-md text-secondary flex items-center gap-2 hover:gap-4 transition-all"
             >
-              VIEW ENTIRE ARMORY <span className="material-symbols-outlined">arrow_forward</span>
+              VIEW ALL PRODUCTS <span className="material-symbols-outlined">arrow_forward</span>
             </Link>
           </div>
 
@@ -154,7 +154,7 @@ export default async function HomePage() {
                       <span className="bg-secondary text-white text-[10px] font-bold px-2 py-1 mb-4 inline-block">FEATURED</span>
                       <h3 className="text-white font-headline-lg text-headline-lg mb-2 uppercase line-clamp-2">{trending.name}</h3>
                       <span className="text-white font-label-md text-label-md flex items-center gap-2">
-                        DEPLOY SYSTEM <span className="material-symbols-outlined text-sm">east</span>
+                        SHOP NOW <span className="material-symbols-outlined text-sm">east</span>
                       </span>
                     </div>
                   </div>
@@ -187,7 +187,7 @@ export default async function HomePage() {
             <div className="flex flex-col items-center justify-center py-20 gap-4">
               <span className="material-symbols-outlined text-4xl text-secondary animate-spin">progress_activity</span>
               <p className="font-label-md text-label-md text-on-surface-variant uppercase tracking-widest">
-                Awaiting hardware feed…
+                Loading products…
               </p>
             </div>
           )}
@@ -235,7 +235,7 @@ export default async function HomePage() {
                 href="/shop"
                 className="inline-flex items-center gap-2 font-label-md text-label-md text-white bg-primary px-8 py-4 hover:bg-secondary transition-colors uppercase tracking-widest"
               >
-                Enter The Gallery <span className="material-symbols-outlined">launch</span>
+                Shop Now <span className="material-symbols-outlined">launch</span>
               </Link>
             </div>
           </div>

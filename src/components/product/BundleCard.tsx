@@ -31,7 +31,7 @@ export default function BundleCard({ bundle }: BundleCardProps) {
       <div>
         <div className="mb-4">
           <span className="font-label-sm text-label-sm text-secondary uppercase tracking-tighter font-bold">
-            Combo Kit
+            Bundle
           </span>
         </div>
         <div className="aspect-square mb-6 overflow-hidden">
@@ -54,7 +54,7 @@ export default function BundleCard({ bundle }: BundleCardProps) {
         onClick={goToDetail}
         className="w-full py-3 border border-primary font-label-md text-label-md uppercase tracking-widest group-hover:bg-primary group-hover:text-white transition-all"
       >
-        View Kit
+        View Bundle
       </button>
     </Link>
   )

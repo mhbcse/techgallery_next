@@ -93,7 +93,7 @@ export default function ShopContent({
   const toggleSpec = (spec: string) =>
     setSelectedSpecs((prev) => (prev.includes(spec) ? prev.filter((s) => s !== spec) : [...prev, spec]))
 
-  const pageTitle = search ? `SEARCH: "${search.toUpperCase()}"` : 'THE ARMORY'
+  const pageTitle = search ? `SEARCH: "${search.toUpperCase()}"` : 'ALL PRODUCTS'
 
   // Bundles carry no category/brand/search in the API, so only surface them on the
   // unfiltered first page; otherwise show products alone.
@@ -107,7 +107,7 @@ export default function ShopContent({
     <div className="max-w-container-max mx-auto px-margin-lg py-10">
       {/* Header */}
       <div className="mb-8 border-b border-outline-variant pb-6">
-        <span className="font-label-md text-label-md text-secondary uppercase tracking-[0.2em]">Hardware Catalog</span>
+        <span className="font-label-md text-label-md text-secondary uppercase tracking-[0.2em]">Product Catalog</span>
         <h1 className="font-headline-lg text-headline-lg font-black tracking-tight mt-2">{pageTitle}</h1>
       </div>
 
@@ -115,7 +115,7 @@ export default function ShopContent({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         {pagination && (
           <span className="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">
-            {pagination.total_count} units · page {pagination.current_page}/{pagination.total_pages}
+            {pagination.total_count} products · page {pagination.current_page}/{pagination.total_pages}
           </span>
         )}
         <select
@@ -134,10 +134,10 @@ export default function ShopContent({
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Sidebar */}
         <aside className="w-full lg:w-64 flex-shrink-0 space-y-8">
-          {/* Hardware type / categories */}
+          {/* Categories */}
           <div>
             <h3 className="font-label-md text-label-md font-bold uppercase tracking-wider text-on-surface-variant mb-4 border-l-2 border-secondary pl-2">
-              Hardware Type
+              Category
             </h3>
             <div className="space-y-2">
               {categories.map((cat) => {

@@ -14,7 +14,7 @@ interface ProductCardProps {
 export default function ProductCard({ product }: ProductCardProps) {
   const router = useRouter()
 
-  const handleAddToLoadout = (e: React.MouseEvent) => {
+  const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
     router.push(`/products/${product.slug}`)
@@ -54,10 +54,10 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
       </div>
       <button
-        onClick={handleAddToLoadout}
+        onClick={handleAddToCart}
         className="w-full py-3 border border-primary font-label-md text-label-md uppercase tracking-widest group-hover:bg-primary group-hover:text-white transition-all"
       >
-        Add To Loadout
+        Add to Cart
       </button>
     </Link>
   )
