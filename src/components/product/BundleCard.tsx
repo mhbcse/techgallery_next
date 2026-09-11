@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import type { Bundle } from '@/api/types'
 import { bundlePriceRange } from '@/api/bundles'
 import { formatCurrency } from '@/lib/formatCurrency'
+import BlurImage from '@/components/common/BlurImage'
 
 interface BundleCardProps {
   bundle: Bundle
@@ -38,8 +39,10 @@ export default function BundleCard({ bundle }: BundleCardProps) {
           </span>
         </div>
         <div className="aspect-square mb-6 overflow-hidden">
-          <img
+          <BlurImage
             src={bundle.image_url || '/assets/logo-vertical-blue.png'}
+            meta={bundle.image_meta}
+            fit="contain"
             alt={bundle.name}
             className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
           />

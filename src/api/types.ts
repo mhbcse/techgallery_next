@@ -14,6 +14,15 @@ export interface Customer {
   created_at: string
 }
 
+// What the platform measured off the image's display version (the 1200px WebP that
+// `photo_url` / `image_url` resolve to, not the thumbnail). `lqip` is raw base64 of a 32px
+// WebP — prepend `data:image/webp;base64,`. Null when the image predates the measurement.
+export interface ImageMeta {
+  width: number
+  height: number
+  lqip: string
+}
+
 export interface Product {
   id: string
   name: string
@@ -28,6 +37,7 @@ export interface Product {
   active: boolean
   photo_url: string | null
   thumbnail_url: string | null
+  photo_meta: ImageMeta | null
   // Full CDN URL for the product video; empty string when none.
   video_url: string | null
   color_type: string | null
@@ -57,6 +67,7 @@ export interface ProductImage {
   position: number
   image_url: string
   thumbnail_url: string
+  image_meta: ImageMeta | null
 }
 
 // A "buy N for ৳X" quantity offer tied to a single variant. Order it by sending
@@ -98,6 +109,7 @@ export interface Variant {
   color_id: string | null
   property_id: string | null
   image_url: string | null
+  image_meta: ImageMeta | null
 }
 
 export interface Color {
@@ -238,6 +250,9 @@ export interface BundleCombo {
   price: number
   original_price: number | null
   image_url: string
+  // Describes whichever image `image_url` resolved to — the combo's own, else the
+  // component variant's it fell back to.
+  image_meta: ImageMeta | null
   // Max of this combo shippable today (min across components).
   available_stock: number
   // True if in stock or all short components sell out of stock (preorder or backorder).
@@ -254,6 +269,7 @@ export interface Bundle {
   name: string
   slug: string
   image_url: string
+  image_meta: ImageMeta | null
   variants: BundleCombo[]
 }
 

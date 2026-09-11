@@ -9,6 +9,7 @@ import { getProduct } from '@/api/products'
 import type { Product } from '@/api/types'
 import { formatCurrency } from '@/lib/formatCurrency'
 import { trackAddToCart } from '@/lib/pixel'
+import BlurImage from '@/components/common/BlurImage'
 
 export default function CartAddedModal() {
   const router = useRouter()
@@ -101,8 +102,10 @@ export default function CartAddedModal() {
                 {related.slice(0, 3).map((p) => (
                   <div key={p.id} className="border border-outline-variant bg-white p-3 flex flex-col">
                     <div className="aspect-square mb-2 overflow-hidden">
-                      <img
+                      <BlurImage
                         src={p.thumbnail_url || p.photo_url || '/assets/logo-vertical-blue.png'}
+                        meta={p.photo_meta}
+                        fit="contain"
                         alt={p.name}
                         className="w-full h-full object-contain"
                       />

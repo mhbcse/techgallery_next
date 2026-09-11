@@ -4,6 +4,7 @@ import { serverFetch } from '@/api/server'
 import type { Product, Bundle, PaginatedResponse } from '@/api/types'
 import ProductCard from '@/components/product/ProductCard'
 import BundleCard from '@/components/product/BundleCard'
+import BlurImage from '@/components/common/BlurImage'
 import { mergeCatalog } from '@/lib/catalog'
 
 export const metadata: Metadata = {
@@ -98,8 +99,10 @@ export default async function HomePage() {
               <div className="absolute inset-0 bg-secondary/20 blur-3xl rounded-full scale-75 group-hover:scale-90 transition-transform duration-700" />
               {feature?.photo_url ? (
                 <Link href={feature.slug ? `/products/${feature.slug}` : '/shop'} className="block w-full h-full">
-                  <img
+                  <BlurImage
                     src={feature.photo_url}
+                    meta={feature.photo_meta}
+                    fit="contain"
                     alt={feature.name}
                     className="relative z-10 w-full h-full object-contain drop-shadow-[0_0_30px_rgba(0,123,255,0.5)]"
                   />

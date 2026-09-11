@@ -8,7 +8,7 @@ import { useCartUIStore } from '@/stores/cartUIStore'
 import { formatCurrency } from '@/lib/formatCurrency'
 import { trackAddToCart, trackViewContent } from '@/lib/pixel'
 import QuantitySelector from '@/components/product/QuantitySelector'
-import ProductGallery from '@/components/product/ProductGallery'
+import ProductGallery, { type GalleryImage } from '@/components/product/ProductGallery'
 import Breadcrumb from '@/components/common/Breadcrumb'
 
 interface BundleDetailContentProps {
@@ -45,12 +45,16 @@ export default function BundleDetailContent({ bundle }: BundleDetailContentProps
   }, [viewedContentId])
 
   const thumbnails = useMemo(() => {
-    const urls: string[] = []
+    const images: GalleryImage[] = []
     bundle.variants.forEach((c) => {
-      if (c.image_url && !urls.includes(c.image_url)) urls.push(c.image_url)
+      if (c.image_url && !images.some((i) => i.url === c.image_url)) {
+        images.push({ url: c.image_url, meta: c.image_meta })
+      }
     })
-    if (urls.length === 0 && bundle.image_url) urls.push(bundle.image_url)
-    return urls
+    if (images.length === 0 && bundle.image_url) {
+      images.push({ url: bundle.image_url, meta: bundle.image_meta })
+    }
+    return images
   }, [bundle])
 
   const inStock = (selectedCombo?.available_stock ?? 0) > 0

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { Product } from '@/api/types'
 import { formatCurrency } from '@/lib/formatCurrency'
+import BlurImage from '@/components/common/BlurImage'
 
 interface ProductCardProps {
   product: Product
@@ -36,8 +37,10 @@ export default function ProductCard({ product }: ProductCardProps) {
           </span>
         </div>
         <div className="aspect-square mb-6 overflow-hidden">
-          <img
+          <BlurImage
             src={product.thumbnail_url || product.photo_url || '/assets/logo-vertical-blue.png'}
+            meta={product.photo_meta}
+            fit="contain"
             alt={product.name}
             className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
           />

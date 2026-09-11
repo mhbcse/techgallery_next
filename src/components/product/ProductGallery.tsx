@@ -1,14 +1,21 @@
 'use client'
 
 import { ReactNode, useEffect, useRef, useState } from 'react'
+import type { ImageMeta } from '@/api/types'
+import BlurImage from '@/components/common/BlurImage'
 
 const FALLBACK_SRC = '/assets/logo-vertical-blue.png'
 const SWIPE_THRESHOLD = 40 // px of horizontal travel to count as a swipe
 const MAX_ZOOM = 4
 const DOUBLE_TAP_ZOOM = 2.5
 
+export interface GalleryImage {
+  url: string
+  meta: ImageMeta | null
+}
+
 interface ProductGalleryProps {
-  images: string[]
+  images: GalleryImage[]
   activeImage: string | null
   onActiveImageChange: (url: string) => void
   alt: string
@@ -27,15 +34,16 @@ export default function ProductGallery({
   maxThumbnails,
 }: ProductGalleryProps) {
   const hasImages = images.length > 0
-  const rawIndex = activeImage ? images.indexOf(activeImage) : -1
+  const rawIndex = activeImage ? images.findIndex((image) => image.url === activeImage) : -1
   const currentIndex = rawIndex < 0 ? 0 : rawIndex
+  const activeMeta = rawIndex < 0 ? null : images[rawIndex].meta
 
   const [lightboxOpen, setLightboxOpen] = useState(false)
 
   const goTo = (index: number) => {
     if (!hasImages) return
     const next = clamp(index, 0, images.length - 1)
-    if (images[next]) onActiveImageChange(images[next])
+    if (images[next]) onActiveImageChange(images[next].url)
   }
 
   // ----- Inline swipe on the main image -----
@@ -83,15 +91,15 @@ export default function ProductGallery({
     <div className="flex flex-col-reverse md:flex-row gap-4">
       {thumbnails.length > 0 && (
         <div className="flex md:flex-col gap-3">
-          {thumbnails.map((url) => (
+          {thumbnails.map((image) => (
             <button
-              key={url}
-              onClick={() => onActiveImageChange(url)}
+              key={image.url}
+              onClick={() => onActiveImageChange(image.url)}
               className={`w-20 h-24 overflow-hidden flex-shrink-0 border ${
-                activeImage === url ? 'border-2 border-secondary' : 'border-outline-variant'
+                activeImage === image.url ? 'border-2 border-secondary' : 'border-outline-variant'
               }`}
             >
-              <img src={url} alt="" className="w-full h-full object-cover" />
+              <BlurImage src={image.url} meta={image.meta} alt="" className="w-full h-full object-cover" />
             </button>
           ))}
         </div>
@@ -101,8 +109,10 @@ export default function ProductGallery({
           <div className="absolute -top-px -left-px w-10 h-10 border-t-2 border-l-2 border-secondary z-10" />
           <div className="absolute -bottom-px -right-px w-10 h-10 border-b-2 border-r-2 border-secondary z-10" />
           {badge}
-          <img
+          <BlurImage
             src={activeImage || FALLBACK_SRC}
+            meta={activeMeta}
+            fit="contain"
             alt={alt}
             onClick={openLightbox}
             onTouchStart={onTouchStart}
@@ -130,7 +140,7 @@ export default function ProductGallery({
 // ---------------------------------------------------------------------------
 
 interface LightboxProps {
-  images: string[]
+  images: GalleryImage[]
   index: number
   alt: string
   onIndexChange: (index: number) => void
@@ -318,7 +328,7 @@ function Lightbox({ images, index, alt, onIndexChange, onClose }: LightboxProps)
       )}
 
       <img
-        src={images[index]}
+        src={images[index].url}
         alt={alt}
         onDoubleClick={(e) => toggleZoomAt(e.clientX, e.clientY, e.currentTarget)}
         onTouchStart={onTouchStart}

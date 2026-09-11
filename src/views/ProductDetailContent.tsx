@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
-import type { ProductDetail, Variant, Product, Color, Property, Offer } from '@/api/types'
+import type { ProductDetail, Variant, Product, Color, Property, Offer, ImageMeta } from '@/api/types'
 import { useCartStore } from '@/stores/cartStore'
 import { useCartUIStore } from '@/stores/cartUIStore'
 import { useWishlistStore } from '@/stores/wishlistStore'
@@ -11,7 +11,7 @@ import { formatCurrency } from '@/lib/formatCurrency'
 import { trackViewContent, trackAddToCart } from '@/lib/pixel'
 import QuantitySelector from '@/components/product/QuantitySelector'
 import ProductCard from '@/components/product/ProductCard'
-import ProductGallery from '@/components/product/ProductGallery'
+import ProductGallery, { type GalleryImage } from '@/components/product/ProductGallery'
 import Breadcrumb from '@/components/common/Breadcrumb'
 
 type Tab = 'description' | 'specs'
@@ -129,14 +129,14 @@ export default function ProductDetailContent({
   // Thumbnail strip: the product's gallery images (position-ordered), then any
   // variant-specific images — deduped, skipping blanks. The cover/thumbnail is
   // intentionally excluded.
-  const thumbnails: string[] = []
-  const pushThumb = (url: string | null | undefined) => {
-    if (url && !thumbnails.includes(url)) thumbnails.push(url)
+  const thumbnails: GalleryImage[] = []
+  const pushThumb = (url: string | null | undefined, meta: ImageMeta | null) => {
+    if (url && !thumbnails.some((t) => t.url === url)) thumbnails.push({ url, meta })
   }
   ;[...product.images]
     .sort((a, b) => a.position - b.position)
-    .forEach((img) => pushThumb(img.image_url))
-  orderedVariants.forEach((v) => pushThumb(v.image_url))
+    .forEach((img) => pushThumb(img.image_url, img.image_meta))
+  orderedVariants.forEach((v) => pushThumb(v.image_url, v.image_meta))
 
   const currentPrice = selectedVariant?.price ?? product.price_min
   const originalPrice = selectedVariant?.original_price ?? null
