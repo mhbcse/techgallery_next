@@ -1,5 +1,17 @@
 import type { Bundle, ProductListItem } from '@/api/types'
 
+// The home page fills six product slots: the hero, the large tile and four secondary cards.
+export const HOME_FEATURED_LIMIT = 6
+export const HOME_NEW_LIMIT = 8
+
+// Curation first — the featured collection, in the drag order set in admin. `featured` is a
+// per-website flag that stays empty until the seller curates, so a shop that has curated
+// nothing falls back to new arrivals rather than an empty home page.
+export const HOME_PRODUCT_SOURCES = [
+  ['featured', HOME_FEATURED_LIMIT],
+  ['new', HOME_NEW_LIMIT],
+] as const
+
 // A single entry in a mixed product/bundle feed.
 export type CatalogEntry =
   | { kind: 'product'; product: ProductListItem }

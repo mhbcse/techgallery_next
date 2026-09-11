@@ -5,7 +5,7 @@ import type { ProductListItem, Bundle, PaginatedResponse } from '@/api/types'
 import ProductCard from '@/components/product/ProductCard'
 import BundleCard from '@/components/product/BundleCard'
 import BlurImage from '@/components/common/BlurImage'
-import { mergeCatalog } from '@/lib/catalog'
+import { mergeCatalog, HOME_PRODUCT_SOURCES } from '@/lib/catalog'
 
 export const metadata: Metadata = {
   title: 'Tech Gallery - High-Performance Peripherals',
@@ -31,20 +31,32 @@ const specs = [
   },
 ]
 
+// Walks the sources in order and takes the first that yields anything. A failed request
+// stops the walk rather than falling through, so a network blip never relabels the curated
+// rail as new arrivals.
+async function getHomeProducts(): Promise<ProductListItem[]> {
+  for (const [collection, perPage] of HOME_PRODUCT_SOURCES) {
+    const res = await serverFetch<PaginatedResponse<ProductListItem>>(
+      `/api/v1/products?collection=${collection}&per_page=${perPage}`,
+      { revalidate: 60 }
+    )
+    if (res.data.length > 0) return res.data
+  }
+  return []
+}
+
 export default async function HomePage() {
   let products: ProductListItem[] = []
   let bundles: Bundle[] = []
 
   try {
-    const [productsRes, bundlesRes] = await Promise.all([
-      serverFetch<PaginatedResponse<ProductListItem>>('/api/v1/products?per_page=8', {
-        revalidate: 60,
-      }),
+    const [homeProducts, bundlesRes] = await Promise.all([
+      getHomeProducts(),
       serverFetch<PaginatedResponse<Bundle>>('/api/v1/bundles?per_page=4', {
         revalidate: 60,
       }).catch(() => ({ data: [] as Bundle[] })),
     ])
-    products = productsRes.data
+    products = homeProducts
     bundles = bundlesRes.data
   } catch {
     // Fail silently — show page without products
