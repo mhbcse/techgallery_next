@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { serverFetch } from '@/api/server'
-import type { ProductDetail, Product, SingleResponse, PaginatedResponse } from '@/api/types'
+import type { ProductDetail, ProductListItem, SingleResponse, PaginatedResponse } from '@/api/types'
 import ProductDetailContent from '@/views/ProductDetailContent'
 
 export async function generateMetadata({
@@ -42,7 +42,7 @@ export default async function ProductDetailPage({
   const { slug } = await params
 
   let product: ProductDetail | null = null
-  let relatedProducts: Product[] = []
+  let relatedProducts: ProductListItem[] = []
 
   try {
     const productRes = await serverFetch<SingleResponse<ProductDetail>>(
@@ -54,7 +54,7 @@ export default async function ProductDetailPage({
     // Fetch related products from the product's first category
     const relatedCategoryId = product.categories[0]?.id
     if (relatedCategoryId) {
-      const relatedRes = await serverFetch<PaginatedResponse<Product>>(
+      const relatedRes = await serverFetch<PaginatedResponse<ProductListItem>>(
         `/api/v1/products?category_id=${relatedCategoryId}&per_page=4`,
         { revalidate: 120 }
       )

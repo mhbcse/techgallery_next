@@ -1,9 +1,9 @@
-import type { Product } from '@/api/types'
+import type { ProductListItem } from '@/api/types'
 import ProductCard from './ProductCard'
 import Spinner from '../ui/Spinner'
 
 interface ProductGridProps {
-  products: Product[]
+  products: ProductListItem[]
   loading?: boolean
 }
 

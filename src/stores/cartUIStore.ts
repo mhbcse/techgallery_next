@@ -1,13 +1,13 @@
 import { create } from 'zustand'
 import type { CartItem } from './cartStore'
-import type { Product } from '@/api/types'
+import type { ProductListItem } from '@/api/types'
 
 // Drives the "added to cart" popup that surfaces related products + a checkout CTA.
 interface CartUIState {
   open: boolean
   addedItem: CartItem | null
-  related: Product[]
-  openCartAdded: (item: CartItem, related: Product[]) => void
+  related: ProductListItem[]
+  openCartAdded: (item: CartItem, related: ProductListItem[]) => void
   close: () => void
 }
 

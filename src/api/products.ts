@@ -1,5 +1,5 @@
 import apiClient from './client'
-import type { Product, ProductDetail, PaginatedResponse, SingleResponse } from './types'
+import type { ProductListItem, ProductDetail, PaginatedResponse, SingleResponse } from './types'
 
 export async function listProducts(params?: {
   search?: string
@@ -7,8 +7,8 @@ export async function listProducts(params?: {
   brand_id?: string
   page?: number
   per_page?: number
-}): Promise<PaginatedResponse<Product>> {
-  const res = await apiClient.get<PaginatedResponse<Product>>('/api/v1/products', { params })
+}): Promise<PaginatedResponse<ProductListItem>> {
+  const res = await apiClient.get<PaginatedResponse<ProductListItem>>('/api/v1/products', { params })
   return res.data
 }
 

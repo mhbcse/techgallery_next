@@ -1,15 +1,15 @@
-import type { Bundle, Product } from '@/api/types'
+import type { Bundle, ProductListItem } from '@/api/types'
 
 // A single entry in a mixed product/bundle feed.
 export type CatalogEntry =
-  | { kind: 'product'; product: Product }
+  | { kind: 'product'; product: ProductListItem }
   | { kind: 'bundle'; bundle: Bundle }
 
 // Interleave bundles into a product list so the feed reads
 // [prod][bundle][prod][prod][bundle]…. A bundle is dropped in after every
 // `gap` products; any leftover bundles are appended at the end.
 export function mergeCatalog(
-  products: Product[],
+  products: ProductListItem[],
   bundles: Bundle[],
   gap = 3
 ): CatalogEntry[] {

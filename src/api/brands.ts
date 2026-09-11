@@ -1,5 +1,5 @@
 import apiClient from './client'
-import type { Brand, Product, CollectionResponse, PaginatedResponse, SingleResponse } from './types'
+import type { Brand, ProductListItem, CollectionResponse, PaginatedResponse, SingleResponse } from './types'
 
 export async function listBrands(params?: {
   search?: string
@@ -20,8 +20,8 @@ export async function getBrand(slug: string): Promise<Brand> {
 export async function getBrandProducts(
   slug: string,
   params?: { page?: number; per_page?: number }
-): Promise<CollectionResponse<Product>> {
-  const res = await apiClient.get<CollectionResponse<Product>>(
+): Promise<CollectionResponse<ProductListItem>> {
+  const res = await apiClient.get<CollectionResponse<ProductListItem>>(
     `/api/v1/brands/${slug}/products`,
     { params }
   )

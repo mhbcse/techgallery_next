@@ -1,5 +1,5 @@
 import apiClient from './client'
-import type { CategoryTree, Product, CollectionResponse, PaginatedResponse, SingleResponse } from './types'
+import type { CategoryTree, ProductListItem, CollectionResponse, PaginatedResponse, SingleResponse } from './types'
 
 export async function listCategories(params?: {
   tree?: string
@@ -20,8 +20,8 @@ export async function getCategory(slug: string): Promise<CategoryTree> {
 export async function getCategoryProducts(
   slug: string,
   params?: { page?: number; per_page?: number }
-): Promise<CollectionResponse<Product>> {
-  const res = await apiClient.get<CollectionResponse<Product>>(
+): Promise<CollectionResponse<ProductListItem>> {
+  const res = await apiClient.get<CollectionResponse<ProductListItem>>(
     `/api/v1/categories/${slug}/products`,
     { params }
   )

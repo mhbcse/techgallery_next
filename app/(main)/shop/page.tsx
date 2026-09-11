@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import { serverFetch } from '@/api/server'
-import type { Product, Bundle, CategoryTree, Brand, PaginatedResponse } from '@/api/types'
+import type { ProductListItem, Bundle, CategoryTree, Brand, PaginatedResponse } from '@/api/types'
 import ShopContent from '@/views/ShopContent'
 
 export const metadata: Metadata = {
@@ -20,7 +20,7 @@ export default async function ShopPage({
   const categoryId = params.category_id ? String(params.category_id) : ''
   const brandId = params.brand_id ? String(params.brand_id) : ''
 
-  let products: Product[] = []
+  let products: ProductListItem[] = []
   let pagination = null
   let categories: CategoryTree[] = []
   let brands: Brand[] = []
@@ -33,7 +33,7 @@ export default async function ShopPage({
     if (brandId) queryParts.push(`brand_id=${brandId}`)
 
     const [productsRes, categoriesRes, brandsRes, bundlesRes] = await Promise.all([
-      serverFetch<PaginatedResponse<Product>>(
+      serverFetch<PaginatedResponse<ProductListItem>>(
         `/api/v1/products?${queryParts.join('&')}`,
         { revalidate: 60 }
       ),

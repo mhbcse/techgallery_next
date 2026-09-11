@@ -2,12 +2,12 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import type { Product } from '@/api/types'
-import { formatCurrency } from '@/lib/formatCurrency'
+import type { ProductListItem } from '@/api/types'
 import BlurImage from '@/components/common/BlurImage'
+import PriceDisplay from './PriceDisplay'
 
 interface ProductCardProps {
-  product: Product
+  product: ProductListItem
   showWishlist?: boolean
 }
 
@@ -20,20 +20,15 @@ export default function ProductCard({ product }: ProductCardProps) {
     router.push(`/products/${product.slug}`)
   }
 
-  const hasDiscount = product.price_min !== product.price_max
-
   return (
     <Link
       href={`/products/${product.slug}`}
       className="group flex flex-col justify-between bg-white border border-outline-variant p-6 hover:border-secondary transition-all"
     >
       <div>
-        <div className="flex justify-between items-start mb-4">
+        <div className="mb-4">
           <span className="font-label-sm text-label-sm text-outline uppercase tracking-tighter">
             {product.color_type || 'Hardware'}
-          </span>
-          <span className="font-label-sm text-label-sm text-secondary font-bold">
-            {formatCurrency(product.price_min)}
           </span>
         </div>
         <div className="aspect-square mb-6 overflow-hidden">
@@ -48,11 +43,15 @@ export default function ProductCard({ product }: ProductCardProps) {
         <h4 className="font-label-md text-label-md font-bold uppercase mb-2 line-clamp-2">
           {product.name}
         </h4>
-        {hasDiscount && (
-          <span className="inline-block bg-secondary/10 text-secondary text-[10px] font-bold px-2 py-0.5 mb-2">
-            SALE
-          </span>
-        )}
+        <div className="mb-4">
+          <PriceDisplay
+            price={product.price_min}
+            priceMax={product.price_max}
+            originalPrice={product.on_sale ? product.original_price_min : null}
+            originalPriceMax={product.on_sale ? product.original_price_max : null}
+            discountPercent={product.discount_percent}
+          />
+        </div>
       </div>
       <button
         onClick={handleAddToLoadout}

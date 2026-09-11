@@ -2,7 +2,7 @@ import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { serverFetch } from '@/api/server'
-import type { Product, CollectionResponse } from '@/api/types'
+import type { ProductListItem, CollectionResponse } from '@/api/types'
 import CollectionListing from '@/views/CollectionListing'
 
 export async function generateMetadata({
@@ -12,7 +12,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params
   try {
-    const res = await serverFetch<CollectionResponse<Product>>(
+    const res = await serverFetch<CollectionResponse<ProductListItem>>(
       `/api/v1/brands/${slug}/products?page=1`,
       { revalidate: 300 }
     )
@@ -39,9 +39,9 @@ export default async function BrandPage({
   const sp = await searchParams
   const page = sp.page ? String(sp.page) : '1'
 
-  let res: CollectionResponse<Product> | null = null
+  let res: CollectionResponse<ProductListItem> | null = null
   try {
-    res = await serverFetch<CollectionResponse<Product>>(
+    res = await serverFetch<CollectionResponse<ProductListItem>>(
       `/api/v1/brands/${slug}/products?page=${page}`,
       { revalidate: 60 }
     )

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { serverFetch } from '@/api/server'
-import type { Product, Bundle, PaginatedResponse } from '@/api/types'
+import type { ProductListItem, Bundle, PaginatedResponse } from '@/api/types'
 import ProductCard from '@/components/product/ProductCard'
 import BundleCard from '@/components/product/BundleCard'
 import BlurImage from '@/components/common/BlurImage'
@@ -32,12 +32,12 @@ const specs = [
 ]
 
 export default async function HomePage() {
-  let products: Product[] = []
+  let products: ProductListItem[] = []
   let bundles: Bundle[] = []
 
   try {
     const [productsRes, bundlesRes] = await Promise.all([
-      serverFetch<PaginatedResponse<Product>>('/api/v1/products?per_page=8', {
+      serverFetch<PaginatedResponse<ProductListItem>>('/api/v1/products?per_page=8', {
         revalidate: 60,
       }),
       serverFetch<PaginatedResponse<Bundle>>('/api/v1/bundles?per_page=4', {

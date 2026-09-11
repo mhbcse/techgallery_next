@@ -4,8 +4,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import type { Bundle } from '@/api/types'
 import { bundlePriceRange } from '@/api/bundles'
-import { formatCurrency } from '@/lib/formatCurrency'
 import BlurImage from '@/components/common/BlurImage'
+import PriceDisplay from './PriceDisplay'
 
 interface BundleCardProps {
   bundle: Bundle
@@ -15,8 +15,7 @@ interface BundleCardProps {
 // user picks a combo. No direct add — combos carry their own price/stock.
 export default function BundleCard({ bundle }: BundleCardProps) {
   const router = useRouter()
-  const { min, minOriginal } = bundlePriceRange(bundle)
-  const onSale = minOriginal != null && minOriginal > min
+  const { min, max, minOriginal } = bundlePriceRange(bundle)
 
   const goToDetail = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -30,12 +29,9 @@ export default function BundleCard({ bundle }: BundleCardProps) {
       className="group flex flex-col justify-between bg-white border border-outline-variant p-6 hover:border-secondary transition-all"
     >
       <div>
-        <div className="flex justify-between items-start mb-4">
+        <div className="mb-4">
           <span className="font-label-sm text-label-sm text-secondary uppercase tracking-tighter font-bold">
             Combo Kit
-          </span>
-          <span className="font-label-sm text-label-sm text-secondary font-bold">
-            {formatCurrency(min)}
           </span>
         </div>
         <div className="aspect-square mb-6 overflow-hidden">
@@ -50,11 +46,9 @@ export default function BundleCard({ bundle }: BundleCardProps) {
         <h4 className="font-label-md text-label-md font-bold uppercase mb-2 line-clamp-2">
           {bundle.name}
         </h4>
-        {onSale && (
-          <span className="inline-block bg-secondary/10 text-secondary text-[10px] font-bold px-2 py-0.5 mb-2">
-            SALE
-          </span>
-        )}
+        <div className="mb-4">
+          <PriceDisplay price={min} priceMax={max} originalPrice={minOriginal} />
+        </div>
       </div>
       <button
         onClick={goToDetail}

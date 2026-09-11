@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import type { Product, Pagination } from '@/api/types'
+import type { ProductListItem, Pagination } from '@/api/types'
 import { getCategoryProducts } from '@/api/categories'
 import { getBrandProducts } from '@/api/brands'
 import ProductGrid from '@/components/product/ProductGrid'
@@ -12,7 +12,7 @@ interface CollectionListingProps {
   title: string
   kind: 'category' | 'brand'
   slug: string
-  initialProducts: Product[]
+  initialProducts: ProductListItem[]
   initialPagination: Pagination | null
 }
 
@@ -28,7 +28,7 @@ export default function CollectionListing({
   const searchParams = useSearchParams()
   const page = Number(searchParams?.get('page')) || 1
 
-  const [products, setProducts] = useState<Product[]>(initialProducts)
+  const [products, setProducts] = useState<ProductListItem[]>(initialProducts)
   const [pagination, setPagination] = useState<Pagination | null>(initialPagination)
   const [loading, setLoading] = useState(false)
 

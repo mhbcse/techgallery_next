@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
-import type { ProductDetail, Variant, Product, Color, Property, Offer, ImageMeta } from '@/api/types'
+import type { ProductDetail, Variant, ProductListItem, Color, Property, Offer, ImageMeta } from '@/api/types'
 import { useCartStore } from '@/stores/cartStore'
 import { useCartUIStore } from '@/stores/cartUIStore'
 import { useWishlistStore } from '@/stores/wishlistStore'
@@ -60,7 +60,7 @@ function formatAvailabilityDate(isoDate: string): string {
 
 interface ProductDetailContentProps {
   product: ProductDetail
-  relatedProducts: Product[]
+  relatedProducts: ProductListItem[]
 }
 
 export default function ProductDetailContent({

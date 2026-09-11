@@ -48,6 +48,27 @@ export interface Product {
   updated_at: string
 }
 
+// The list serializer (/products and the category/brand collections). Every field here is
+// resolved per website across the product's live variants, so the same product can differ
+// between two storefronts of the same account.
+export interface ProductListItem extends Product {
+  original_price_min: number | null
+  // The compare-at price to strike through next to `price_max`.
+  original_price_max: number | null
+  on_sale: boolean
+  // Largest discount across the variants; null when nothing is discounted.
+  discount_percent: number | null
+  available_stock: number
+  sells_out_of_stock: boolean
+  // `available_stock > 0 OR sells_out_of_stock` — gate the buy button on this.
+  in_stock: boolean
+  // Lifetime delivered units, account-wide rather than per website.
+  units_sold: number
+  position: number | null
+  featured: boolean
+  brand: Pick<Brand, 'id' | 'name' | 'slug'> | null
+}
+
 export interface ProductDetail extends Product {
   variants: Variant[]
   colors: Color[]

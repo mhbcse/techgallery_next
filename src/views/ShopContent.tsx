@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { listProducts } from '@/api/products'
-import type { Product, Bundle, CategoryTree, Brand, Pagination } from '@/api/types'
+import type { ProductListItem, Bundle, CategoryTree, Brand, Pagination } from '@/api/types'
 import CatalogGrid from '@/components/product/CatalogGrid'
 import { mergeCatalog } from '@/lib/catalog'
 import PaginationComponent from '@/components/ui/Pagination'
@@ -18,7 +18,7 @@ const SORT_OPTIONS = [
 ]
 
 interface ShopContentProps {
-  initialProducts: Product[]
+  initialProducts: ProductListItem[]
   initialPagination: Pagination | null
   categories: CategoryTree[]
   brands: Brand[]
@@ -48,7 +48,7 @@ export default function ShopContent({
   const categoryParam = selectedCategoryIds.join(',')
   const brandParam = selectedBrandIds.join(',')
 
-  const [products, setProducts] = useState<Product[]>(initialProducts)
+  const [products, setProducts] = useState<ProductListItem[]>(initialProducts)
   const [pagination, setPagination] = useState<Pagination | null>(initialPagination)
   const [loading, setLoading] = useState(false)
   const [sortBy, setSortBy] = useState('featured')
