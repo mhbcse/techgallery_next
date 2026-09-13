@@ -4,6 +4,8 @@
 // so a code left here indefinitely would keep re-applying long after it stopped working.
 const STORAGE_KEY = 'tg_coupon'
 const HOLD_MS = 24 * 60 * 60 * 1000
+// Campaign links carry the code as `?coupon=CODE` on whatever page they land on.
+const URL_PARAM = 'coupon'
 
 interface StoredCoupon {
   code: string
@@ -43,6 +45,15 @@ export function saveAppliedCoupon(code: string): void {
       ? stored.expiresAt
       : Date.now() + HOLD_MS
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ code, expiresAt }))
+}
+
+// A code in the landing URL is a deliberate campaign hand-off, so it replaces whatever was
+// being held. Safe to call from more than one place: holding the same code again keeps the
+// original deadline.
+export function captureCouponFromUrl(): void {
+  if (typeof window === 'undefined') return
+  const code = new URLSearchParams(window.location.search).get(URL_PARAM)?.trim()
+  if (code) saveAppliedCoupon(code)
 }
 
 export function clearAppliedCoupon(): void {

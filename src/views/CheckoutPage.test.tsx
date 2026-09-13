@@ -367,6 +367,31 @@ describe('CheckoutPage', () => {
       expect(window.localStorage.getItem('tg_coupon')).toBeNull()
     })
 
+    it('auto-applies a code arriving in the checkout URL', async () => {
+      window.history.replaceState({}, '', '/checkout?coupon=TG50')
+      render(<CheckoutPage />)
+
+      await waitFor(() => expect(validateCoupon).toHaveBeenCalledTimes(1))
+      expect(vi.mocked(validateCoupon).mock.calls[0][0].code).toBe('TG50')
+      expect(await screen.findByText('Discount (TG50)')).toBeInTheDocument()
+
+      window.history.replaceState({}, '', '/checkout')
+    })
+
+    it('prefers a code from the URL over one already held', async () => {
+      window.localStorage.setItem(
+        'tg_coupon',
+        JSON.stringify({ code: 'OLD', expiresAt: Date.now() + 60_000 })
+      )
+      window.history.replaceState({}, '', '/checkout?coupon=TG50')
+      render(<CheckoutPage />)
+
+      await waitFor(() => expect(validateCoupon).toHaveBeenCalledTimes(1))
+      expect(vi.mocked(validateCoupon).mock.calls[0][0].code).toBe('TG50')
+
+      window.history.replaceState({}, '', '/checkout')
+    })
+
     it('drops an expired hold without quoting it', async () => {
       window.localStorage.setItem(
         'tg_coupon',

@@ -15,7 +15,12 @@ import { listDistricts, listAreas } from '@/api/locations'
 import type { Location } from '@/api/types'
 import { getStoredTracking } from '@/lib/tracking'
 import { readCheckoutDetails, saveCheckoutDetails } from '@/lib/checkoutDetails'
-import { clearAppliedCoupon, readAppliedCoupon, saveAppliedCoupon } from '@/lib/appliedCoupon'
+import {
+  captureCouponFromUrl,
+  clearAppliedCoupon,
+  readAppliedCoupon,
+  saveAppliedCoupon,
+} from '@/lib/appliedCoupon'
 import { toOrderItems } from '@/lib/orderItems'
 import { trackInitiateCheckout } from '@/lib/pixel'
 import { apiErrorMessage } from '@/lib/apiError'
@@ -60,6 +65,9 @@ export default function CheckoutPage() {
   // Restore the held code rather than a stored discount: the quote effect re-checks it, so a
   // coupon that stopped working in the meantime is dropped instead of silently honoured.
   useEffect(() => {
+    // Also captured in the public layout, but child effects run before the layout's, so a
+    // link straight to /checkout?coupon=CODE would otherwise be read before it was held.
+    captureCouponFromUrl()
     const held = readAppliedCoupon()
     if (held) setAppliedCode(held)
   }, [])
