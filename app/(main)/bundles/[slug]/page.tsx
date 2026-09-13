@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { serverFetch } from '@/api/server'
 import type { Bundle, SingleResponse } from '@/api/types'
 import BundleDetailContent from '@/views/BundleDetailContent'
+import { OG_IMAGE } from '@/lib/constants'
 
 export async function generateMetadata({
   params,
@@ -22,7 +23,7 @@ export async function generateMetadata({
       description: `Get the ${bundle.name} combo kit at Tech Gallery. Bundled high-performance gear.`,
       openGraph: {
         title: `${bundle.name} - Tech Gallery`,
-        images: bundle.image_url ? [{ url: bundle.image_url }] : [],
+        images: [bundle.image_url ? { url: bundle.image_url } : OG_IMAGE],
       },
     }
   } catch {

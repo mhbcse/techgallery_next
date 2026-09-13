@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { serverFetch } from '@/api/server'
 import type { ProductDetail, ProductListItem, SingleResponse, PaginatedResponse } from '@/api/types'
 import ProductDetailContent from '@/views/ProductDetailContent'
+import { OG_IMAGE } from '@/lib/constants'
 
 export async function generateMetadata({
   params,
@@ -24,7 +25,7 @@ export async function generateMetadata({
       openGraph: {
         title: `${product.name} - Tech Gallery`,
         description: product.description || `Buy ${product.name} at Tech Gallery.`,
-        images: product.photo_url ? [{ url: product.photo_url }] : [],
+        images: [product.photo_url ? { url: product.photo_url } : OG_IMAGE],
       },
     }
   } catch {

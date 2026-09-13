@@ -3,6 +3,7 @@ import { Hanken_Grotesk, Inter, JetBrains_Mono } from 'next/font/google'
 import Providers from './providers'
 import { serverFetch } from '@/api/server'
 import type { Settings, SingleResponse } from '@/api/types'
+import { APP_NAME, OG_IMAGE, SITE_DOMAIN } from '@/lib/constants'
 import '@/index.css'
 
 const hankenGrotesk = Hanken_Grotesk({
@@ -35,12 +36,25 @@ export async function generateMetadata(): Promise<Metadata> {
     // Fall back to the bundled icon if settings can't be fetched.
   }
 
+  const title = 'Tech Gallery - High-Performance Peripherals'
+  const description =
+    'The definitive source for high-performance peripheral engineering. Keyboards, mice and audio gear designed for the relentless, built for the elite.'
+
   return {
-    title: 'Tech Gallery - High-Performance Peripherals',
-    description:
-      'The definitive source for high-performance peripheral engineering. Keyboards, mice and audio gear designed for the relentless, built for the elite.',
+    // Resolves the relative preview image to an absolute URL, which scrapers require.
+    metadataBase: new URL(`https://${SITE_DOMAIN}`),
+    title,
+    description,
     icons: {
       icon: favicon,
+    },
+    // Inherited by every page that does not declare its own openGraph block.
+    openGraph: {
+      type: 'website',
+      siteName: APP_NAME,
+      title,
+      description,
+      images: [OG_IMAGE],
     },
   }
 }
