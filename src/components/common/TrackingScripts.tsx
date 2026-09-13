@@ -5,6 +5,7 @@ import { getSettings } from '@/api/settings'
 import type { Settings } from '@/api/types'
 import { configurePixels, setCustomerMatch, setVisitorMatch } from '@/lib/pixel'
 import { readCheckoutDetails } from '@/lib/checkoutDetails'
+import { useAuthStore } from '@/stores/authStore'
 
 // Guards against duplicate <script> injection: StrictMode double-mount in dev,
 // (main) layout remounts in prod. Module scope survives remounts; a full page
@@ -13,6 +14,7 @@ let scriptsInjected = false
 
 export default function TrackingScripts() {
   const [settings, setSettings] = useState<Settings | null>(null)
+  const user = useAuthStore((s) => s.user)
 
   useEffect(() => {
     getSettings()
@@ -25,10 +27,8 @@ export default function TrackingScripts() {
 
     configurePixels(settings)
 
-    const saved = readCheckoutDetails()
-    if (saved.email || saved.phone) void setCustomerMatch({ email: saved.email, phone: saved.phone })
-    // Both awaits their SHA-256 before touching fbq/ttq, so the tags injected below this line
-    // are in place by the time either one fires.
+    // Awaits its SHA-256 before touching fbq/ttq, so the tags injected below this line are
+    // in place by the time it fires.
     void setVisitorMatch()
 
     if (scriptsInjected) return
@@ -115,6 +115,17 @@ export default function TrackingScripts() {
       document.head.appendChild(gtmScript)
     }
   }, [settings])
+
+  // Checkout collects no email, so the only one the browser ever knows is the signed-in
+  // customer's. Re-runs when the auth store rehydrates, which lands after the first pass;
+  // setCustomerMatch accumulates, so the later call adds the email rather than replacing
+  // the guest phone.
+  useEffect(() => {
+    if (!settings) return
+    const phone = user?.phone ?? readCheckoutDetails().phone
+    if (!user?.email && !phone) return
+    void setCustomerMatch({ email: user?.email, phone })
+  }, [settings, user])
 
   return null
 }

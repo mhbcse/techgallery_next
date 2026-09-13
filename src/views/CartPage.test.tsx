@@ -1,27 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import CartPage from './CartPage'
 import { useCartStore } from '@/stores/cartStore'
-import { createOrder } from '@/api/orders'
-import { listDistricts, listAreas } from '@/api/locations'
-import { trackInitiateCheckout } from '@/lib/pixel'
-
-const { pushMock } = vi.hoisted(() => ({ pushMock: vi.fn() }))
-
-vi.mock('next/navigation', () => ({ useRouter: () => ({ push: pushMock }) }))
-vi.mock('@/api/orders', () => ({ createOrder: vi.fn() }))
-vi.mock('@/api/locations', () => ({ listDistricts: vi.fn(), listAreas: vi.fn() }))
-vi.mock('@/api/incompleteOrders', () => ({ captureIncompleteOrder: vi.fn() }))
-vi.mock('@/lib/tracking', () => ({ getStoredTracking: () => ({}) }))
-vi.mock('@/lib/pixel', () => ({ trackInitiateCheckout: vi.fn() }))
-vi.mock('react-hot-toast', () => {
-  const fn = Object.assign(vi.fn(), { success: vi.fn(), error: vi.fn() })
-  return { default: fn }
-})
 
 beforeEach(() => {
-  vi.clearAllMocks()
   useCartStore.setState({
     items: [
       {
@@ -36,13 +19,9 @@ beforeEach(() => {
       },
     ],
   })
-  vi.mocked(listDistricts).mockResolvedValue([{ id: 1, name: 'Dhaka', bn_name: '', fee: 60 }])
-  vi.mocked(listAreas).mockResolvedValue([{ id: 10, name: 'Banasree', bn_name: '', fee: 80 }])
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  vi.mocked(createOrder).mockResolvedValue({ grand_total: 280 } as any)
 })
 
-describe('CartPage checkout flow', () => {
+describe('CartPage', () => {
   it('renders cart items and the live subtotal', () => {
     render(<CartPage />)
     expect(screen.getByText('Aero-Glide Pro')).toBeInTheDocument()
@@ -50,99 +29,50 @@ describe('CartPage checkout flow', () => {
     expect(screen.getAllByText(/৳\s?200/).length).toBeGreaterThan(0)
   })
 
-  it('fires InitiateCheckout on the first field input, not on cart view, and only once', async () => {
+  it('does not promise a delivery charge it cannot know', () => {
+    render(<CartPage />)
+    expect(screen.getByText(/Calculated at checkout/i)).toBeInTheDocument()
+  })
+
+  it('sends the shopper to checkout rather than collecting details here', () => {
+    render(<CartPage />)
+    expect(screen.getByRole('link', { name: /Proceed To Checkout/i })).toHaveAttribute('href', '/checkout')
+    expect(screen.queryByPlaceholderText('Full Name')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Promo code')).not.toBeInTheDocument()
+  })
+
+  it('updates a line quantity', async () => {
     const user = userEvent.setup()
     render(<CartPage />)
-    await screen.findByRole('option', { name: 'Dhaka' })
 
-    // Viewing the cart (mount + hydration) must not signal checkout.
-    expect(trackInitiateCheckout).not.toHaveBeenCalled()
+    await user.click(screen.getByRole('button', { name: '+' }))
 
-    await user.type(screen.getByPlaceholderText('Full Name'), 'A')
-    expect(trackInitiateCheckout).toHaveBeenCalledTimes(1)
-
-    // Further edits in the same mount do not re-fire (per-mount short-circuit).
-    await user.type(screen.getByPlaceholderText(/Mobile Number/), '01712345678')
-    expect(trackInitiateCheckout).toHaveBeenCalledTimes(1)
+    expect(useCartStore.getState().items[0].quantity).toBe(3)
   })
 
-  it('blocks order placement until a district is selected', async () => {
+  it('removes a line', async () => {
     const user = userEvent.setup()
     render(<CartPage />)
-    await screen.findByRole('option', { name: 'Dhaka' })
 
-    await user.type(screen.getByPlaceholderText('Full Name'), 'Test User')
-    await user.type(screen.getByPlaceholderText(/Mobile Number/), '01712345678')
-    await user.type(screen.getByPlaceholderText(/House no/), '123 Street, Dhaka')
+    await user.click(screen.getByRole('button', { name: 'delete' }))
 
-    await user.click(screen.getAllByRole('button', { name: /Place Order/i })[0])
-
-    await screen.findByText(/District is required/i)
-    expect(createOrder).not.toHaveBeenCalled()
+    expect(useCartStore.getState().items).toHaveLength(0)
   })
 
-  it('places an order with mapped items + resolved shipping, then clears the cart', async () => {
+  it('clears the cart', async () => {
     const user = userEvent.setup()
     render(<CartPage />)
-    await screen.findByRole('option', { name: 'Dhaka' })
 
-    await user.type(screen.getByPlaceholderText('Full Name'), 'Test User')
-    await user.type(screen.getByPlaceholderText(/Mobile Number/), '01712345678')
-    await user.type(screen.getByPlaceholderText(/House no/), '123 Street, Dhaka')
+    await user.click(screen.getByRole('button', { name: /Clear/i }))
 
-    await user.selectOptions(screen.getByDisplayValue('Select District *'), '1')
-    await screen.findByRole('option', { name: 'Banasree' })
-    await user.selectOptions(screen.getByDisplayValue('Select Area (optional)'), '10')
-
-    await user.click(screen.getAllByRole('button', { name: /Place Order/i })[0])
-
-    await waitFor(() => expect(createOrder).toHaveBeenCalledTimes(1))
-
-    const payload = vi.mocked(createOrder).mock.calls[0][0]
-    expect(payload.order_items).toEqual([{ variant_id: 10, quantity: 2 }])
-    expect(payload.shipping_charge).toBe(80) // area fee overrides district fee
-    expect(payload.order).toMatchObject({
-      customer_name: 'Test User',
-      customer_phone: '01712345678',
-      customer_address: '123 Street, Dhaka',
-      customer_district: 'Dhaka',
-      customer_area: 'Banasree',
-    })
-    // reCAPTCHA is intentionally not used
-    expect(JSON.stringify(payload)).not.toContain('recaptcha')
-
-    await waitFor(() => expect(useCartStore.getState().items).toHaveLength(0))
-    expect(pushMock).toHaveBeenCalledWith('/')
+    expect(useCartStore.getState().items).toHaveLength(0)
   })
 
-  it('places an order without an area, falling back to the district fee', async () => {
-    const user = userEvent.setup()
+  it('shows the empty state with no items', () => {
+    useCartStore.setState({ items: [] })
     render(<CartPage />)
-    await screen.findByRole('option', { name: 'Dhaka' })
 
-    await user.type(screen.getByPlaceholderText('Full Name'), 'Test User')
-    await user.type(screen.getByPlaceholderText(/Mobile Number/), '01712345678')
-    await user.type(screen.getByPlaceholderText(/House no/), '123 Street, Dhaka')
-    await user.selectOptions(screen.getByDisplayValue('Select District *'), '1')
-
-    await user.click(screen.getAllByRole('button', { name: /Place Order/i })[0])
-
-    await waitFor(() => expect(createOrder).toHaveBeenCalledTimes(1))
-    const payload = vi.mocked(createOrder).mock.calls[0][0]
-    expect(payload.shipping_charge).toBe(60)
-    expect(payload.order).toMatchObject({ customer_district: 'Dhaka' })
-    expect(payload.order.customer_area).toBeUndefined()
-  })
-
-  it('does not offer a promo code field', () => {
-    render(<CartPage />)
-    expect(screen.queryByPlaceholderText('CODE')).not.toBeInTheDocument()
-    expect(screen.queryByText(/Promo Code/i)).not.toBeInTheDocument()
-  })
-
-  it('does not ask for an email or a password', () => {
-    render(<CartPage />)
-    expect(screen.queryByPlaceholderText(/Email/i)).not.toBeInTheDocument()
-    expect(screen.queryByPlaceholderText(/password/i)).not.toBeInTheDocument()
+    expect(screen.getByText(/Your loadout is empty/i)).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Proceed To Checkout/i })).not.toBeInTheDocument()
   })
 })

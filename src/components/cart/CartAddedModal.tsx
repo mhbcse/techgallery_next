@@ -55,7 +55,7 @@ export default function CartAddedModal() {
 
   const goCheckout = () => {
     close()
-    router.push('/cart')
+    router.push('/checkout')
   }
 
   return (

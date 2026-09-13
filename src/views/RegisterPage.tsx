@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import toast from 'react-hot-toast'
@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores/authStore'
 import { registerSchema, type RegisterFormData } from '@/lib/validators'
+import { readCheckoutDetails } from '@/lib/checkoutDetails'
 import { useTitle } from '@/hooks/useTitle'
 
 // Social login is not implemented yet — hidden until the providers are wired up.
@@ -27,10 +28,26 @@ export default function RegisterPage() {
   const {
     register,
     handleSubmit,
+    getValues,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
   })
+
+  // Carry over what checkout already knows, so signing up after an order is not retyping.
+  // Email is not among it — checkout never asks for one.
+  // Applied on mount rather than through defaultValues: the details live in localStorage,
+  // which the server render cannot see, and seeding them at render would mismatch on
+  // hydration. Empty fields only, so a shopper mid-type is never overwritten.
+  useEffect(() => {
+    const saved = readCheckoutDetails()
+    const fillIfEmpty = (field: 'name' | 'phone', value?: string) => {
+      if (value && !getValues(field)) setValue(field, value)
+    }
+    fillIfEmpty('name', saved.name)
+    fillIfEmpty('phone', saved.phone)
+  }, [getValues, setValue])
 
   const onSubmit = async (data: RegisterFormData) => {
     if (!agreedTerms) {

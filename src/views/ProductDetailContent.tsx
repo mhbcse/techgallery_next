@@ -159,6 +159,9 @@ export default function ProductDetailContent({
   const isPreorder = !inStock && policy === 'preorder'
   const isBackorder = !inStock && policy === 'backorder'
   const canOrder = inStock || (!inStock && !!selectedVariant?.sells_out_of_stock)
+  // A backorder still goes in the cart like anything else; only a preorder is worth naming
+  // on the button, because the buyer is committing ahead of the stock arriving.
+  const addToCartLabel = isPreorder ? 'Pre-order' : 'Add to Cart'
 
   // Quantity offers tied to the currently selected variant, and the picked one.
   const variantOffers = selectedVariant
@@ -424,7 +427,7 @@ export default function ProductDetailContent({
                 className="flex-1 flex items-center justify-center gap-2 bg-primary text-white font-label-md text-label-md uppercase tracking-widest py-4 hover:bg-secondary active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span className="material-symbols-outlined text-lg">shopping_cart</span>
-                {isBackorder ? 'Available for order' : isPreorder ? 'Pre-order' : 'Add to Cart'}
+                {addToCartLabel}
               </button>
               <button
                 onClick={toggleWishlist}
@@ -515,7 +518,7 @@ export default function ProductDetailContent({
           disabled={!canOrder}
           className="flex-1 bg-primary text-white font-label-md text-label-md uppercase tracking-widest py-3 hover:bg-secondary active:scale-95 transition-all disabled:opacity-50"
         >
-          {isBackorder ? 'Available for order' : isPreorder ? 'Pre-order' : 'Add to Cart'} — {formatCurrency(selectedOffer ? selectedOffer.price : currentPrice)}
+          {addToCartLabel} — {formatCurrency(selectedOffer ? selectedOffer.price : currentPrice)}
         </button>
       </div>
     </>

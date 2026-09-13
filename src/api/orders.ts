@@ -38,6 +38,9 @@ export async function createOrder(data: {
   shipping_area?: string
   // Client-displayed estimate only; the server recomputes the authoritative value.
   shipping_charge?: number
+  // The raw code only, never a quoted amount. Rails decides the binding discount during the
+  // drain and may refuse the code there, creating the order at full price rather than failing.
+  coupon_code?: string
   custom_fields?: Record<string, unknown>
   // Only needed when the API has RECAPTCHA_SECRET_KEY configured.
   recaptcha_token?: string

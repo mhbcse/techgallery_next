@@ -34,7 +34,7 @@ describe('readCheckoutDetails', () => {
 
 describe('saveCheckoutDetails', () => {
   it('stores trimmed values and drops empty ones', () => {
-    saveCheckoutDetails({ name: '  Rahim  ', phone: '01711111111', address: '   ', email: undefined })
+    saveCheckoutDetails({ name: '  Rahim  ', phone: '01711111111', address: '   ' })
 
     expect(readCheckoutDetails()).toEqual({ name: 'Rahim', phone: '01711111111' })
   })
